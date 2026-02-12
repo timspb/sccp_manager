@@ -334,7 +334,7 @@ class SCCPShowSoftkeySets_Response extends SCCPGeneric_Response
     public function __construct($rawContent)
     {
         parent::__construct($rawContent);
-        $this->setKey('eventlistendevent', 'SCCPShowSoftKeySetsComplete');
+        $this->setKey('eventlistendevent', 'SCCPShowSoftkeySetsComplete');
     }
     public function getResult()
     {

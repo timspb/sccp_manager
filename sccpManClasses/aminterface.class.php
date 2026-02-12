@@ -322,8 +322,12 @@ class aminterface
     }
     public function _eventObjFromMsg($message)
     {
-        $eventType = explode(aminterface\Message::EOL,$message,2);
-        $name = trim(explode(':',$eventType[0],2)[1]);
+        $eventType = explode(aminterface\Message::EOL, $message, 2);
+        $name = trim(explode(':', $eventType[0], 2)[1]);
+        // chan_sccp driver sends SCCPShowSoftkeySetsComplete (lowercase k); PHP class uses SoftKey (capital K)
+        if ($name === 'SCCPShowSoftkeySetsComplete') {
+            $name = 'SCCPShowSoftKeySetsComplete';
+        }
         $className = '\\FreePBX\\modules\\Sccp_manager\\aminterface\\' . $name . '_Event';
         if (class_exists($className, true) === false) {
             $className = '\\FreePBX\\modules\\Sccp_manager\\aminterface\\UnknownEvent';
