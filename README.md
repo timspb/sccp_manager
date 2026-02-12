@@ -14,8 +14,9 @@
 [![Download Chan-SCCP channel driver for Asterisk](https://img.shields.io/sourceforge/dt/chan-sccp-b.svg)](https://github.com/chan-sccp/chan-sccp/releases/latest)
 [![Chan-SCCP Documentation](https://img.shields.io/badge/docs-wiki-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki)
 
-This FreePBX module has been developed to help IT Staff with their Asterisk-Cisco infrastructure deployment,
-providing easy provisioning and management of Cisco IP phones and extensions in a similar way to Cisco CallManager.
+This FreePBX module helps manage Asterisk–Cisco infrastructure: provisioning and administration of Cisco IP phones and extensions in a way similar to Cisco CallManager.
+
+**Compatibility (develop branch):** FreePBX 16/17, Asterisk 21, PHP 8.2+, chan-sccp 4.3.5+.
 The idea of creating a module is borrowed from (https://github.com/Cynjut/SCCP_Manager), and was further developed and managed
 by PhantomVl (https://github.com/PhantomVl/sccp_manager) who has been unavailable for some time. sccp_manager relies heavily
 on chan-sccp, so having the same repository will help improve integration.
@@ -32,17 +33,16 @@ You can find more information and documentation on our [![SCCP Manager Wiki](htt
 
 ## Prerequisites
 Make sure you have the following installed on your system:
-- gui:
-  - freepbx >= 13.0.192
-- a working version of [chan-sccp](https://github.com/chan-sccp/chan-sccp)
-- PHPx.x-zip has to be installed (where x.x is the installed version of PHP).
-  For example, on Debian, using PHP7.3
-```
-apt-get install PHP7.3-zip
+- **GUI:** FreePBX 16 or 17
+- **PHP:** 8.2 or later (required by module dependencies)
+- A working version of [chan-sccp](https://github.com/chan-sccp/chan-sccp)
+- **PHP zip extension** (e.g. on Debian with PHP 8.2):
+```bash
+apt-get install php8.2-zip
 ```
 
 ### Requirements
-- chan-sccp module 4.3.4 (or later) channel driver for Asterisk: [See our WIKI](https://github.com/chan-sccp/chan-sccp/wiki/Building-and-Installation-Guide)
+- **chan-sccp** 4.3.4 or later (4.3.5+ recommended) channel driver for Asterisk: [See our WIKI](https://github.com/chan-sccp/chan-sccp/wiki/Building-and-Installation-Guide)
   - sccp_manager expects these configure flags to be set during compilation:
     ```./configure  --enable-conference --enable-advanced-functions --enable-distributed-devicestate --enable-video```
 
@@ -66,31 +66,24 @@ How to install sccp_manager
 -----
 
 1. Log in to FreePBX
-2. Go to Admin -> Module Admin
-3. Click Upload Modules.
-4. Enter one of the following urls:
+2. Go to **Admin → Module Admin**
+3. Click **Upload Modules**
+4. Enter one of the following URLs:
 
-Stable - Version 14.3.
+**Develop (recommended for FreePBX 16/17, PHP 8.2+)**
 
-This is the latest version of sccp_manager and has many bug fixes. It is targetted for FreePbx 16 and as such requires PHP > 7.3. It works fine with FreePbx 15 as long as you can upgrade PHP (this cannot be done if you use commercial modules). There are changes to the database structure, and so this cannot be easily reverted to prior versions without using a backup, which the installer will create. If you are using a VM,  it is recommended to take a snapshot before upgrading.
-Upgrades via FreePbx module admin are enabled in this release, but do not work because of a FreePbx issue (a patch has been posted). To workaround this, if you see that an upgrade is available, you can download it via the command line console which is unaffected by this issue
-```
-fwconsole ma upgrade sccp_manager
-```
-```
-https://github.com/chan-sccp/sccp_manager/archive/refs/tags/14.3.0.13.zip
-```
+Compatible with FreePBX 16/17, Asterisk 21, and PHP 8.2+. Includes latest fixes and PHP 8.2 compatibility improvements.
 
-Stable (For PHP < 7 only)
-```
-https://github.com/chan-sccp/sccp_manager/archive/refs/tags/v14.2.0.11.zip
-```
-Develop.
-
-This version can be updated through module admin as modifications are made (pending fix by FreePbx)
-_This is development software and so may have issues_
+_This is development software and may have issues._
 ```
 https://github.com/chan-sccp/sccp_manager/archive/refs/heads/develop.zip
+```
+
+**Stable (legacy)**
+
+For older FreePBX/PHP setups:
+```
+https://github.com/chan-sccp/sccp_manager/archive/refs/tags/14.3.0.13.zip
 ```
 
 
@@ -102,12 +95,13 @@ https://github.com/chan-sccp/sccp_manager/archive/refs/heads/develop.zip
 10. Apply Config to FreePBX.
 11. Continue to [Using-SCCP_Manager-to-Manage-chan-sccp](https://github.com/chan-sccp/chan-sccp/wiki/Using-SCCP_Manager-to-Manage-chan-sccp)
 
-### Module update to latest state
+### Module update
 
-If you installed any version >14.3.0.13, the module can be updated to the latest version via FreePBX. The GUI version FreePBX -> Admin -> Module Admin currently has a reported bug, but the upgrade can be made via the command line using
-```
+To update the module to the latest version from the command line:
+```bash
 fwconsole ma upgrade sccp_manager
 ```
+Or use **Admin → Module Admin** in the FreePBX GUI when an update is available.
 
 
 ### IMPORTANT NOTES:
