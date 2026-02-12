@@ -163,22 +163,22 @@ if (!empty($this->info_warning)) {
     <div class="fpbx-container container-fluid">
         <div class="row">
             <div class="container">
-                <h2 style="border:2px solid Tomato;color:Tomato;" >Sccp Manager Warning</h2>
+                <h2 style="border:2px solid Tomato;color:Tomato;" ><?php echo _("Sccp Manager Warning"); ?></h2>
                 <div class="table-responsive">
-                    <br> There are Warning in the SCCP Module:<br><pre>
+                    <br> <?php echo _("There are Warning in the SCCP Module:"); ?><br><pre>
                         <?php
                         foreach ($this->info_warning as $key => $value) {
-                            echo '<h3>' . $key . '</h3>';
+                            echo '<h3>' . $this->escapeHtml($key) . '</h3>';
                             if (is_array($value)) {
-                                echo '<li>' . _(implode('</li><li>', $value)) . '</li>';
+                                echo '<li>' . $this->escapeHtml(_(implode('</li><li>', $value))) . '</li>';
                             } else {
-                                echo '<li>' . _($value) . '</li>';
+                                echo '<li>' . $this->escapeHtml(_($value)) . '</li>';
                             }
                             echo '<br>';
                         }
                         ?>
                     </pre>
-                    <br><h4 style="border:2px solid Tomato;color:Green;" > Check these problems before continuing to work.</h4> <br>
+                    <br><h4 style="border:2px solid Tomato;color:Green;" > <?php echo _("Check these problems before continuing to work."); ?></h4> <br>
                 </div>
             </div>
         </div>
@@ -192,13 +192,13 @@ if (!empty($this->class_error)) {
     <div class="fpbx-container container-fluid">
         <div class="row">
             <div class="container">
-                <h2 style="border:2px solid Tomato;color:Tomato;" >Diagnostic information about SCCP Manager errors</h2>
+                <h2 style="border:2px solid Tomato;color:Tomato;" ><?php echo _("Diagnostic information about SCCP Manager errors"); ?></h2>
                 <div class="table-responsive">
-                    <br> There is an error in the :<br><pre>
-    <?php print_r($this->class_error); ?>
+                    <br> <?php echo _("There is an error in the module:"); ?><br><pre>
+    <?php echo $this->escapeHtml(print_r($this->class_error, true)); ?>
                     </pre>
-                    <br> Correct these problems before continuing to work. <br>
-                    <br><h3 style="border:2px solid Tomato;color:Green;" > Open 'SCCP Connectivity' -> Server Config' to change global settings</h3> <br>
+                    <br> <?php echo _("Correct these problems before continuing to work."); ?> <br>
+                    <br><h3 style="border:2px solid Tomato;color:Green;" > <?php echo _("Open 'SCCP Connectivity' -> Server Config' to change global settings"); ?></h3> <br>
                 </div>
             </div>
         </div>
@@ -208,20 +208,20 @@ if (!empty($this->class_error)) {
 <div class="fpbx-container container-fluid">
     <div class="row">
         <div class="container">
-            <h2>Sccp Manager v<?php print_r((string) $moduleXml->version); ?> Info </h2>
+            <h2><?php echo _("Sccp Manager"); ?> v<?php echo $this->escapeHtml((string) $moduleXml->version); ?> <?php echo _("Info"); ?> </h2>
             <div class="table-responsive">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Module</th>
-                            <th>Version</th>
-                            <th>Info</th>
+                            <th><?php echo _("Module"); ?></th>
+                            <th><?php echo _("Version"); ?></th>
+                            <th><?php echo _("Info"); ?></th>
                         </tr>
                     </thead>
                     <tbody>
 <?php
 foreach ($info as $key => $value) {
-    echo '<tr><td>' . $key . '</td><td>' . $value['Version'] . '</td><td>' . $value['about'] . '</td></tr>';
+    echo '<tr><td>' . $this->escapeHtml($key) . '</td><td>' . $this->escapeHtml($value['Version'] ?? '') . '</td><td>' . $this->escapeHtml($value['about'] ?? '') . '</td></tr>';
 }
 ?>
                     </tbody>

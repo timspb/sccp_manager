@@ -64,6 +64,11 @@ trait bmoFunctions {
 
     }
 
+    /**
+     * Forms use class "fpbx-submit" and POST to config.php; FreePBX framework
+     * enforces session auth and may inject CSRF token. AJAX uses BMO ajaxRequest()
+     * and is session-authenticated. Ensure config.php and ajax.php are not bypassed.
+     */
     public function getActionBar($request) {
         $buttons = array();
         switch ($request['display']) {

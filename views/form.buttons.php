@@ -59,16 +59,16 @@ if (!empty($_REQUEST['ru_id'])) {
 <form autocomplete="off" name="frm_editbuttons" id="frm_editbuttons" class="fpbx-submit" action="" method="post" data-id="hw_edit">
     <input type="hidden" name="category" value="frm_editbuttons">
     <input type="hidden" name="Submit" value="Submit">
-    <input type="hidden" name="buttonscount" id="buttonscount" value="<?php echo $show_buttons;?>">
-    <input type="hidden" name="devButtonCnt" id="devButtonCnt" value="<?php echo (!empty($db_device['buttons']))?$db_device['buttons']:0;?>">
-    <input type="hidden" name="addonCnt" id="addonCnt" value="<?php echo (!empty($db_device['dns']))?$db_device['dns']:0;?>">
-    <div class="section-title" data-for="<?php echo $forminfo[0]['name'];?>">
+    <input type="hidden" name="buttonscount" id="buttonscount" value="<?php echo $this->escapeHtml($show_buttons);?>">
+    <input type="hidden" name="devButtonCnt" id="devButtonCnt" value="<?php echo $this->escapeHtml(!empty($db_device['buttons']) ? $db_device['buttons'] : 0);?>">
+    <input type="hidden" name="addonCnt" id="addonCnt" value="<?php echo $this->escapeHtml(!empty($db_device['dns']) ? $db_device['dns'] : 0);?>">
+    <div class="section-title" data-for="<?php echo $this->escapeHtml($forminfo[0]['name']);?>">
         <h3><i class="fa fa-minus"></i><?php echo _($forminfo[0]['label']) ?></h3>
     </div>
-    <div class="section" data-id="<?php echo $forminfo[0]['name'];?>">
+    <div class="section" data-id="<?php echo $this->escapeHtml($forminfo[0]['name']);?>">
     <div class="row"> <div class="form-group">
             <div class="col-sm-2">
-                <label class="control-label">Help</label>
+                <label class="control-label"><?php echo _("Help"); ?></label>
                 <i class="fa fa-question-circle fpbx-help-icon" data-for="frmbuttons"></i>
             </div>
             <div class="col-sm-10">
@@ -143,25 +143,25 @@ if (!empty($_REQUEST['ru_id'])) {
             }
         }
 
-        echo '<!-- Begin button :'.$line_id.' -->';
-        echo '<div class="line_button element-container" '.(($line_id < $show_buttons)?"":"hidden ").'data-id="'.$line_id.'">';
+        echo '<!-- Begin button :' . $this->escapeHtml($line_id) . ' -->';
+        echo '<div class="line_button element-container" '.(($line_id < $show_buttons)?"":"hidden ").'data-id="'.$this->escapeHtml($line_id).'">';
 
         ?>
             <div class="row"> <div class="form-group">
                     <div class="col-sm-2">
-                        <label class="control-label" for="<?php echo $forminfo[1]['name'].$line_id; ?> "><?php echo _($forminfo[1]['label'].$line_id).(($line_id =="0")?' Default ':''); ?></label>
+                        <label class="control-label" for="<?php echo $this->escapeHtml($forminfo[1]['name'].$line_id); ?> "><?php echo _($forminfo[1]['label'].$line_id).(($line_id =="0")?' '._("Default").' ':''); ?></label>
                     </div>
                     <div class="col-sm-5">
                         <div class="col-xs-3">
 <!--  Line Type Select                        -->
-                        <select class="form-control buttontype" data-id="<?php echo $line_id;?>" name="<?php echo $forminfo[1]['name'].$line_id.'_type';?>">
+                        <select class="form-control buttontype" data-id="<?php echo $this->escapeHtml($line_id);?>" name="<?php echo $this->escapeHtml($forminfo[1]['name'].$line_id.'_type');?>">
                     <?php
                     if ($line_id == 0) {
-                        echo '<option value="line" selected >DEF LINE</option>';
+                        echo '<option value="line" selected >' . _("DEF LINE") . '</option>';
                     } else {
                         foreach ($buttons_type as $data) {
                             $select = (($data == $defaul_tv)?"selected":"");
-                            echo '<option value="'.$data.'" '.$select.' >'.$data.'</option>';
+                            echo '<option value="'.$this->escapeHtml($data).'" '.$select.' >'.$this->escapeHtml($data).'</option>';
                         }
                     }
                     ?>
@@ -169,27 +169,27 @@ if (!empty($_REQUEST['ru_id'])) {
                         </div>
 <!--  if Line Type = feature Show Futures -->
                         <div class="col-xs-7">
-                        <select data-type="feature" class ="futuretype form-control lineid_<?php echo $line_id.(($show_form_mode=='feature')?'':' hidden');?>" data-id="<?php echo $line_id;?>"  name="<?php echo $forminfo[1]['name'].$line_id.'_feature';?>" >
+                        <select data-type="feature" class ="futuretype form-control lineid_<?php echo $this->escapeHtml($line_id).(($show_form_mode=='feature')?'':' hidden');?>" data-id="<?php echo $this->escapeHtml($line_id);?>"  name="<?php echo $this->escapeHtml($forminfo[1]['name'].$line_id.'_feature');?>" >
                         <?php
                         foreach ($feature_list as $fkey => $fval) {
                             $select = (($fkey == $defaul_ftr)?"selected":"");
-                            echo '<option value="'.$fkey.'" '.$select.' >'.$fval.'</option>';
+                            echo '<option value="'.$this->escapeHtml($fkey).'" '.$select.' >'.$this->escapeHtml($fval).'</option>';
                         }
                         ?>
                         </select>
 <!--  if Line Type = line Show SCCP Num -->
-                        <select data-type='line' class ="form-control lineid_<?php echo $line_id.(($show_form_mode=='line' || $show_form_mode=='adv.line')?'':' hidden');?>" name="<?php echo $forminfo[1]['name'].$line_id.'_line';?>" id="<?php echo $forminfo[1]['name'].$line_id.'_line';?>">
+                        <select data-type='line' class ="form-control lineid_<?php echo $this->escapeHtml($line_id).(($show_form_mode=='line' || $show_form_mode=='adv.line')?'':' hidden');?>" name="<?php echo $this->escapeHtml($forminfo[1]['name'].$line_id.'_line');?>" id="<?php echo $this->escapeHtml($forminfo[1]['name'].$line_id.'_line');?>">
                         <?php
                         foreach ($lines_list as $data) {
                             $select = (($data['name']==$defaul_btn)?'selected="selected"':"");
-                            echo '<option value="'.$data['name'].'" '.$select.' >'.$data['name'].' / '.$data['label'].'</option>';
+                            echo '<option value="'.$this->escapeHtml($data['name']).'" '.$select.' >'.$this->escapeHtml($data['name']).' / '.$this->escapeHtml($data['label']).'</option>';
                         }
                         ?>
                         </select>
 <!--  if Line Type = Othe Show  Input -->
                         <div data-type='speeddial' class="lineid_<?php echo $line_id.(($show_form_mode=='speeddial')? '':' hidden');?>" >
                             <?php
-                            echo '<input class="form-control" type="text" id="'.$forminfo[1]['name'].$line_id.'_input"  name="'.$forminfo[1]['name'].$line_id.'_input" placeholder="Name" value="'.$db_buttons[$line_id]['name'].'" >';
+                            echo '<input class="form-control" type="text" id="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_input').'"  name="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_input').'" placeholder="'._("Name").'" value="'.$this->escapeHtml($db_buttons[$line_id]['name'] ?? '').'" >';
                             ?>
                         </div>
                         </div>
@@ -200,17 +200,17 @@ if (!empty($_REQUEST['ru_id'])) {
                         <div data-type='hintline' class="lineid_<?php echo $line_id.(($show_form_mode=='speeddial')? '':' hidden');?>" name="<?php echo $forminfo[1]['name'].$line_id.'_hint';?>">
                             <?php
                             echo '<div class="col-xs-5">';
-                            echo '<input class="form-control" type="text" id="'.$forminfo[1]['name'].$line_id.'_phone"  name="'.$forminfo[1]['name'].$line_id.'_phone" placeholder="Phone" value="'.$defaul_opt[0].'">';
+                            echo '<input class="form-control" type="text" id="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_phone').'"  name="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_phone').'" placeholder="'._("Phone").'" value="'.$this->escapeHtml($defaul_opt[0] ?? '').'">';
                             echo '</div><div class="col-xs-2 radioset" data-toggle="buttons">';
-                            echo '<input class="form-control" type="checkbox" name="'.$forminfo[1]['name'].$line_id.'_hint" id="'.$forminfo[1]['name'].$line_id.'_hint" '.$def_hint.' value= "hint">';
-                            echo '<label for="'.$forminfo[1]['name'].$line_id.'_hint">hints</label>';
+                            echo '<input class="form-control" type="checkbox" name="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_hint').'" id="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_hint').'" '.$def_hint.' value="hint">';
+                            echo '<label for="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_hint').'">'._("hints").'</label>';
                             echo '</div><div class="col-xs-5">';
 
                             echo '<select  class="form-control" name="'.$forminfo[1]['name'].$line_id.'_hline" >';
 
                             foreach ($hint_list as $data) {
                                 $select = (($data['key']==$def_hint_btn)?"selected":"");
-                                echo '<option value="'.$data['key'].'" '.$select.' >'.$data['exten'].' / '.$data['label'].'</option>';
+                                echo '<option value="'.$this->escapeHtml($data['key']).'" '.$select.' >'.$this->escapeHtml($data['exten']).' / '.$this->escapeHtml($data['label']).'</option>';
                             }
                             echo '</select>';
                             echo '</div>';
@@ -220,12 +220,12 @@ if (!empty($_REQUEST['ru_id'])) {
                         <div data-type='feature' class="lineid_<?php echo $line_id.(($show_form_mode=='feature')? '':' hidden');?>" name="<?php echo $forminfo[1]['name'].$line_id.'_hint';?>">
                             <div class="col-xs-4">
                             <?php
-                            echo '<input class="form-control" type="text" id="'.$forminfo[1]['name'].$line_id.'_flabel"  name="'.$forminfo[1]['name'].$line_id.'_flabel" placeholder="Display Label" value="'.$db_buttons[$line_id]['name'].'" >';
+                            echo '<input class="form-control" type="text" id="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_flabel').'"  name="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_flabel').'" placeholder="'._("Display Label").'" value="'.$this->escapeHtml($db_buttons[$line_id]['name'] ?? '').'" >';
                             ?>
                             </div>
                             <div class="col-xs-4">
                             <?php
-                            echo '<input class="form-control" type="text" id="'.$forminfo[1]['name'].$line_id.'_fvalue"  name="'.$forminfo[1]['name'].$line_id.'_fvalue" placeholder="code" value="'.$defaul_fcod.'" >';
+                            echo '<input class="form-control" type="text" id="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_fvalue').'"  name="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_fvalue').'" placeholder="'._("code").'" value="'.$this->escapeHtml($defaul_fcod ?? '').'" >';
                             ?>
                             </div>
                         </div>
@@ -234,12 +234,12 @@ if (!empty($_REQUEST['ru_id'])) {
                         <div data-type='adv_line' class="lineid_<?php echo $line_id.(($show_form_mode=='adv.line')? '':' hidden');?>" name="<?php echo $forminfo[1]['name'].$line_id.'_hint';?>">
                             <div class="col-xs-5">
                             <?php
-                            echo '<input class="form-control" type="text" id="'.$forminfo[1]['name'].$line_id.'_advline"  name="'.$forminfo[1]['name'].$line_id.'_advline" placeholder="[+=][01]:[cidname]" value="'.$defaul_advline.'" >';
+                            echo '<input class="form-control" type="text" id="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_advline').'"  name="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_advline').'" placeholder="[+=][01]:[cidname]" value="'.$this->escapeHtml($defaul_advline ?? '').'" >';
                             ?>
                             </div>
                             <div class="col-xs-5">
                             <?php
-                            echo '<input class="form-control" type="text" id="'.$forminfo[1]['name'].$line_id.'_advopt"  name="'.$forminfo[1]['name'].$line_id.'_advopt" placeholder="ButtonLabel,Options" value="'.$db_buttons[$line_id]['options'].'" >';
+                            echo '<input class="form-control" type="text" id="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_advopt').'"  name="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_advopt').'" placeholder="'._("ButtonLabel,Options").'" value="'.$this->escapeHtml($db_buttons[$line_id]['options'] ?? '').'" >';
                             ?>
                             </div>
                         </div>
@@ -249,7 +249,7 @@ if (!empty($_REQUEST['ru_id'])) {
                                 <div class="radioset" data-toggle="buttons">
                             <?php
                                 echo '<input class="form-control" type="checkbox" name="'.$forminfo[1]['name'].$line_id.'_retrieve" id="'.$forminfo[1]['name'].$line_id.'_retrieve" '.$def_park.' value="retrieve">';
-                                echo '<label for="'.$forminfo[1]['name'].$line_id.'_retrieve">RetrieveSingle</label>';
+                                echo '<label for="'.$this->escapeHtml($forminfo[1]['name'].$line_id.'_retrieve').'">'._("RetrieveSingle").'</label>';
                             ?>
                                 </div>
                              </div>

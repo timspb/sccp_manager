@@ -6,6 +6,11 @@ class formcreate
 {
     use \FreePBX\modules\Sccp_manager\sccpManTraits\helperFunctions;
 
+    /** Escape for HTML attribute/text (XSS prevention). */
+    private static function h($s) {
+        return htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
     /** @var string */
     public $buttonDefLabel = 'chan-sccp';
     /** @var string */
@@ -106,7 +111,7 @@ class formcreate
                         <label
                             <?php
                             echo "for=usedefault_{$res_id} >";
-                            echo ($usingSysDefaults) ? "Customise" : "Use {$this->buttonDefLabel} defaults";
+                            echo ($usingSysDefaults) ? _("Customise") : sprintf(_("Use %s defaults"), $this->buttonDefLabel);
                             ?>
                         </label>
 
@@ -117,7 +122,7 @@ class formcreate
             <div class="row" id="edit_<?php echo $res_id; ?>" style="display: none">
                 <div class="form-group <?php echo $res_sec_class; ?>">
                     <div class="col-md-3">
-                        <i><?php echo "Enter new {$this->buttonHelpLabel} value for {$shortId}"; ?></i>
+                        <i><?php echo sprintf(_("Enter new %s value for %s"), $this->buttonHelpLabel, $shortId); ?></i>
                     </div>
 
                     <!-- Finish include of defaults button -->
@@ -152,7 +157,7 @@ class formcreate
                             if ($i > 0) {
                                 echo $child->nameseparator;
                             }
-                            echo '<input type="' . $value->type . '" class="' . $value->class . '" id="' . $res_id . '" name="' . $res_name . '" value="' . $value->value.'"';
+                            echo '<input type="' . self::h($value->type) . '" class="' . self::h($value->class) . '" id="' . self::h($res_id) . '" name="' . self::h($res_name) . '" value="' . self::h($value->value) . '"';
                             if (isset($value->options)) {
                                 foreach ($value->options ->attributes() as $optkey => $optval) {
                                     echo  ' '.$optkey.'="'.$optval.'"';
@@ -296,7 +301,7 @@ class formcreate
                                     }
 
                                     $defValue = (isset($addrArr[$field_id])) ? $addrArr[$field_id]: "";
-                                    echo '<input type="text" name="'. $res_n.'" class="'.$opt_at[$field_id]['class'].'" value="'. $defValue .'"';
+                                    echo '<input type="text" name="'. self::h($res_n) .'" class="'. self::h($opt_at[$field_id]['class']) .'" value="'. self::h($defValue) .'"';
 
 
                                     if (isset($value->options)) {
@@ -416,7 +421,7 @@ class formcreate
                         <label
                             <?php
                             echo "for=usedefault_{$res_id} >";
-                            echo ($usingSysDefaults) ? "Customise" : "Use {$this->buttonDefLabel} defaults";
+                            echo ($usingSysDefaults) ? _("Customise") : sprintf(_("Use %s defaults"), $this->buttonDefLabel);
                             ?>
                         </label>
                       </span>
@@ -458,7 +463,7 @@ class formcreate
                             if (in_array($value, $disabledButtons )) {
                                 $opt_disabled = 'disabled';
                             }
-                            $val_check = strtolower((string)$value[@value]);
+                            $val_check = strtolower((string)(isset($value['value']) ? $value['value'] : $value));
                             if ($val_check == strtolower($res_v)) {
                                 $val_check = "checked";
                             } else {
@@ -468,8 +473,9 @@ class formcreate
                                    } else {$val_check = "";}
                                 } else {$val_check = "";}
                             }
-                            echo "<input type=radio name= {$res_id} id=${res_id}_{$i} value='{$value[@value]}' {$val_check} {$opt_hide} {$opt_disabled}>";
-                            echo "<label for= {$res_id}_{$i}>{$value}</label>";
+                            $optVal = (string)(isset($value['value']) ? $value['value'] : $value);
+                            echo "<input type=\"radio\" name=\"" . self::h($res_id) . "\" id=\"" . self::h($res_id . '_' . $i) . "\" value=\"" . self::h($optVal) . "\" {$val_check} {$opt_hide} {$opt_disabled}>";
+                            echo "<label for=\"" . self::h($res_id . '_' . $i) . "\">" . self::h($value) . "</label>";
                             $i++;
                         }
                         ?>
@@ -609,11 +615,11 @@ class formcreate
                                     $opt_key = $val;
                                     $opt_val = $val;
                                 }
-                                echo '<option value="' . $opt_key . '"';
+                                echo '<option value="' . self::h($opt_key) . '"';
                                 if ($opt_key == $child->value) {
                                     echo ' selected="selected"';
                                 }
-                                echo "> {$opt_val} </option>";
+                                echo '>' . self::h($opt_val) . '</option>';
                             }
                             ?>
                             </select>
@@ -698,11 +704,11 @@ class formcreate
                             foreach ($select_opt as $key => $val) {
                                     $opt_key = $key;
                                     $opt_val = $val;
-                                echo '<option value="' . $opt_val . '"';
+                                echo '<option value="' . self::h($opt_val) . '"';
                                 if ($opt_val == $child->value) {
                                     echo ' selected="selected"';
                                 }
-                                echo "> {$opt_val} </option>";
+                                echo '>' . self::h($opt_val) . '</option>';
                             }
                             ?>
                             </select>
@@ -815,19 +821,19 @@ class formcreate
                         }
                     }
                     foreach ($select_opt as $data) {
-                        echo '<option value="' . $data[$fld] . '"';
+                        echo '<option value="' . self::h($data[$fld]) . '"';
                         if ($key == $data[$fld]) {
                             echo ' selected="selected"';
                         }
                         if (!empty($flk)) {
-                            echo ' data-id="'.$data[$flk].'"';
+                            echo ' data-id="'. self::h($data[$flk]) .'"';
                         }
                         if (!empty($flkv)) {
-                            echo ' data-val="'.$data[$flkv].'"';
+                            echo ' data-val="'. self::h($data[$flkv]) .'"';
                         }
-                        echo '>' . $data[$flv];
+                        echo '>' . self::h($data[$flv]);
                         if (!empty($flv2)) {
-                            echo ' / '.$data[$flv2];
+                            echo ' / ' . self::h($data[$flv2]);
                         }
                         echo '</option>';
                     }
@@ -898,13 +904,13 @@ class formcreate
                 $res_opt['inp_end'] = '<span class="input-group-addon" id="bases_'.$res_n.'">'.$opt_at[$fields_id]['display_sufix'].'</span></div>';
                 switch ($value['type']) {
                     case 'date':
-                        echo $res_opt['inp_st'].'<input type="date" name="'. $res_n.'" value="'.$res_vf[$i2].'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
+                        echo $res_opt['inp_st'].'<input type="date" name="'. self::h($res_n) .'" value="'. self::h($res_vf[$i2]) .'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
                         break;
                     case 'number':
-                        echo $res_opt['inp_st'].'<input type="number" name="'. $res_n.'" value="'.$res_vf[$i2].'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
+                        echo $res_opt['inp_st'].'<input type="number" name="'. self::h($res_n) .'" value="'. self::h($res_vf[$i2]) .'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
                         break;
                     case 'input':
-                        echo $res_opt['inp_st'].'<input type="text" name="'. $res_n.'" value="'.$res_vf[$i2].'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
+                        echo $res_opt['inp_st'].'<input type="text" name="'. self::h($res_n) .'" value="'. self::h($res_vf[$i2]) .'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
                         break;
                     case 'title':
                         if ($i > 0) {
@@ -919,11 +925,11 @@ class formcreate
                         $opt_at[$fields_id]['data']='';
                         foreach ($value->xpath('data') as $optselect) {
                             $opt_at[$fields_id]['data'].= (string)$optselect.';';
-                            echo '<option value="' . $optselect. '"';
+                            echo '<option value="' . self::h($optselect) . '"';
                             if (strtolower((string)$optselect) == strtolower((string)$res_vf[$i2])) {
                                 echo ' selected="selected"';
                             }
-                            echo '>' . (string)$optselect. '</option>';
+                            echo '>' . self::h($optselect) . '</option>';
                         }
                         echo  '</select>'.$res_opt['inp_end'];
                         break;

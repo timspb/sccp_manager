@@ -35,7 +35,7 @@ if (empty($sccp_disallow_def)) {
                                 <i class="fa fa-question-circle fpbx-help-icon" data-for="sccp_disallow"></i>
                             </div>
                             <div class="col-md-9 radioset">
-                                <input id="sccp_disallow" type="text" name="sccp_disallow" value="<?php echo $sccp_disallow_def ?>">
+                                <input id="sccp_disallow" type="text" name="sccp_disallow" value="<?php echo $this->escapeHtml($sccp_disallow_def ?? ''); ?>">
                                 <label for="sccp_disallow"><?php echo _("Recomended default: all") ?></label>
                             </div>
                         </div>

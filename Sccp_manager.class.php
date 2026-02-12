@@ -125,39 +125,56 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
     use \FreePBX\modules\Sccp_manager\sccpManTraits\bmoFunctions;
 
     public function __construct($freepbx = null) {
-        if ($freepbx == null) {
-            throw new Exception("Not given a FreePBX Object");
-        }
-        $this->class_error = array();
-        $this->FreePBX = $freepbx;
-        $this->db = $freepbx->Database;
-        $this->cnf_wr = \FreePBX::WriteConfig();
-        $this->cnf_read = \FreePBX::LoadConfig();
-        $driverNamespace = "\\FreePBX\\Modules\\Sccp_manager";
-        if (class_exists($driverNamespace, false)) {
-            foreach (glob(__DIR__ . "/sccpManClasses/*.class.php") as $driver) {
-                if (preg_match("/\/([a-z1-9]*)\.class\.php$/i", $driver, $matches)) {
-                    $name = $matches[1];
-                    $class = $driverNamespace . "\\" . $name;
-                    if (!class_exists($class, false)) {
-                        include($driver);
-                    }
-                    if (class_exists($class, false)) {
-                        $this->$name = new $class($this);
-                    } else {
-                        throw new \Exception("Invalid Class inside in the include folder" . print_r($freepbx));
+        try {
+            if ($freepbx == null) {
+                throw new \Exception("Not given a FreePBX Object");
+            }
+            $this->class_error = array();
+            $this->FreePBX = $freepbx;
+            $this->db = $freepbx->Database;
+            $this->cnf_wr = \FreePBX::WriteConfig();
+            $this->cnf_read = \FreePBX::LoadConfig();
+            $driverNamespace = "\\FreePBX\\Modules\\Sccp_manager";
+            if (class_exists($driverNamespace, false)) {
+                foreach (glob(__DIR__ . "/sccpManClasses/*.class.php") as $driver) {
+                    if (preg_match("/\/([a-z1-9]*)\.class\.php$/i", $driver, $matches)) {
+                        $name = $matches[1];
+                        $class = $driverNamespace . "\\" . $name;
+                        if (!class_exists($class, false)) {
+                            include($driver);
+                        }
+                        if (class_exists($class, false)) {
+                            $this->$name = new $class($this);
+                        } else {
+                            throw new \Exception("Invalid Class inside in the include folder" . print_r($freepbx));
+                        }
                     }
                 }
+            } else {
+                return;
             }
-        } else {
-            return;
-        }
 
-        $this->sccpvalues = $this->dbinterface->get_db_SccpSetting(); //Initialise core settings
-        $this->initializeSccpPath();  //Set required Paths
-        $this->updateTimeZone();   // Get timezone from FreePBX
-        //$this->findInstLangs();
-        $this->saveSccpSettings();
+            $this->sccpvalues = $this->dbinterface->get_db_SccpSetting(); //Initialise core settings
+            $this->initializeSccpPath();  //Set required Paths
+            $this->updateTimeZone();   // Get timezone from FreePBX
+            //$this->findInstLangs();
+            $this->saveSccpSettings();
+        } catch (\Throwable $e) {
+            $this->class_error = array('Sccp_manager load' => $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            if (function_exists('freepbx_log')) {
+                freepbx_log(\FreePBX::Log()->LOG_ERROR, 'Sccp_manager: ' . $e->getMessage(), $e->getFile(), $e->getLine());
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Escape string for safe HTML output (XSS prevention).
+     * @param string $s
+     * @return string
+     */
+    public function escapeHtml($s) {
+        return htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
     /*

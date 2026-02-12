@@ -76,16 +76,16 @@ if (!empty($def_val['type'])) {
             <div class="fpbx-container container-fluid">
                 <div class="row">
                     <div class="container">
-                        <h2 style="border:2px solid Tomato;color:Tomato;" >Warning in the SCCP Device</h2>
+                        <h2 style="border:2px solid Tomato;color:Tomato;" ><?php echo _("Warning in the SCCP Device"); ?></h2>
                         <div class="table-responsive">
                             <pre>
                                 <?php
                                 foreach ($device_warning as $key => $value) {
-                                    echo '<h3>'.$key.'</h3>';
+                                    echo '<h3>' . $this->escapeHtml($key) . '</h3>';
                                     if (is_array($value)) {
-                                        echo '<li>'._(implode('</li><li>', $value)).'</li>';
+                                        echo '<li>' . $this->escapeHtml(_(implode('</li><li>', $value))) . '</li>';
                                     } else {
-                                        echo '<li>'. _($value).'</li>';
+                                        echo '<li>' . $this->escapeHtml(_($value)) . '</li>';
                                     }
                                 }
                                 ?>
@@ -111,7 +111,7 @@ if (!empty($def_val['type'])) {
         $val = str_replace(array('SEP','ATA','VG'), '', $dev_id);
         $val = implode(':', sscanf($val, '%2s%2s%2s%2s%2s%2s')); // Convert to Cisco display Format
         $def_val['mac'] = array("keyword" => 'mac', "data" => $val, "seq" => "99");
-        echo '<input type="hidden" name="sccp_device_id" value="'.$dev_id.'">';
+        echo '<input type="hidden" name="sccp_device_id" value="' . $this->escapeHtml($dev_id) . '">';
     }
 
     if (isset($_REQUEST['tech_hardware']) && $_REQUEST['tech_hardware'] == 'cisco') {
@@ -135,7 +135,7 @@ if (!empty($def_val['type'])) {
         if (empty($dev_new)) {
             echo '<input type="hidden" name="sccp_deviceid" value="new">';
         } else {
-            echo '<input type="hidden" name="sccp_deviceid" value="'.$dev_id.'">';
+            echo '<input type="hidden" name="sccp_deviceid" value="' . $this->escapeHtml($dev_id) . '">';
         }
         */
         if (empty($dev_id)) {
