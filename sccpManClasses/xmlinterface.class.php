@@ -15,7 +15,7 @@ namespace FreePBX\modules\Sccp_manager;
 
 class xmlinterface
 {
-    use \FreePBX\modules\Sccp_Manager\sccpManTraits\helperFunctions;
+    use \FreePBX\modules\Sccp_manager\sccpManTraits\helperFunctions;
     private $val_null = 'NONE'; /// REPLACE to null Field
 
     public function __construct($parent_class = null)

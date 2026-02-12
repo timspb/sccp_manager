@@ -84,7 +84,7 @@ trait ajaxHelper {
                     $res = $this->deleteDialPlan($get_file);
                     return array('status' => true, 'message' => 'Dial Template has been deleted ! ', 'table_reload' => true);
                 } else {
-                    return array('status' => false, 'message' => print_r($res));
+                    return array('status' => false, 'message' => _('No dial plan specified'));
                 }
                 break;
             // -------------------------------   Old device support - In the development---
@@ -135,16 +135,17 @@ trait ajaxHelper {
                 $msg = '';
                 $msgr = array();
                 $msgr[] = "Reset command sent to device(s) ";
+                $res = array('Response' => 'OK', 'data' => '');
                 if (!empty($request['name'])) {
                     foreach ($request['name'] as $idv) {
                         $msg = strpos($idv, 'SEP-');
                         if (!(strpos($idv, 'SEP') === false)) {
                             if ($cmd_id == 'reset_token') {
                                 $res = $this->aminterface->sccpDeviceReset($idv, 'tokenack');
-                                $msgr[] = $msg . ' ' . $res['Response'] . ' ' . $res['data'];
+                                $msgr[] = $msg . ' ' . ($res['Response'] ?? '') . ' ' . ($res['data'] ?? '');
                             } else {
                                 $res = $this->aminterface->sccpDeviceReset($idv, 'reset');
-                                $msgr[] = $msg . ' ' . $res['Response'] . ' ' . $res['data'];
+                                $msgr[] = $msg . ' ' . ($res['Response'] ?? '') . ' ' . ($res['data'] ?? '');
                             }
                         }
 
@@ -152,19 +153,19 @@ trait ajaxHelper {
                             $dev_list = $this->aminterface->sccp_get_active_device();
                             foreach ($dev_list as $key => $data) {
                                 if ($cmd_id == 'reset_token') {
-                                    if (($data['token'] == 'Rej') || ($data['status'] == 'Token ')) {
+                                    if ((isset($data['token']) && $data['token'] == 'Rej') || (isset($data['status']) && $data['status'] == 'Token ')) {
                                         $res = $this->aminterface->sccpDeviceReset($idv, 'tokenack');
                                         $msgr[] = 'Sent Token reset to :' . $key;
                                     }
                                 } else {
                                     $res = $this->aminterface->sccpDeviceReset($idv, 'reset');
-                                    $msgr[] = $res['Response'] . ' ' . $res['data'];
+                                    $msgr[] = ($res['Response'] ?? '') . ' ' . ($res['data'] ?? '');
                                 }
                             }
                         }
                     }
                 }
-                return array('status' => (($res['Response'] == 'Error')? false : true ), 'message' => $msgr, 'reload' => false, 'table_reload' => true);
+                return array('status' => ((isset($res['Response']) && $res['Response'] == 'Error') ? false : true), 'message' => $msgr, 'reload' => false, 'table_reload' => true);
                 break;
             case 'update_button_label':
                 $msg = '';
@@ -718,7 +719,7 @@ trait ajaxHelper {
                         foreach ($get_settings["${hdr_arprefix}${key}"] as $netValue) {
                             switch ($key) {
                                 case 'permit':
-                                case 'deny';
+                                case 'deny':
                                     // Now have an array of settings each with keys net and Mask
                                     // TODO: This needs to be optimised
                                     //foreach ($valueArr as $netValue) {
@@ -772,7 +773,7 @@ trait ajaxHelper {
             $toastFlag = 'warning';
         };
         $hash = '#sipdevice';
-        if ($get_settings['sccp_device_typeid'] != 'sipdevice') {
+        if ((isset($get_settings['sccp_device_typeid']) ? $get_settings['sccp_device_typeid'] : 'sccpdevice') != 'sipdevice') {
             $hash = '#sccpdevice';
             // cannot restart SIP device via chan-sccp.
             if ($hw_id == 'new') {

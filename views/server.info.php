@@ -16,10 +16,12 @@ $ast_realtime = $this->aminterface->getRealTimeStatus();
 //$ast_realm = (empty($ast_realtime['sccp']) ? '' : 'sccp');
 
 // if there are multiple connections, this will only return the first.
-foreach ($ast_realtime as $key => $value) {
-    if (empty($ast_realm)) {
-        if ($value['status'] === 'OK') {
+$ast_realm = '';
+if (is_array($ast_realtime)) {
+    foreach ($ast_realtime as $key => $value) {
+        if ($ast_realm === '' && isset($value['status']) && $value['status'] === 'OK') {
             $ast_realm = $key;
+            break;
         }
     }
 }
@@ -134,8 +136,8 @@ if (empty($conf_realtime)) {
         $info['ConfigsRealTime'] = array('Version' => 'Error', 'about' => $rt_info);
     }
 }
-// $mysql_info
-if ($mysql_info['Value'] <= '2000') {
+// $mysql_info - SHOW VARIABLES returns Variable_name, Value (or similar)
+if (!empty($mysql_info) && isset($mysql_info['Value']) && $mysql_info['Value'] <= '2000') {
     $this->info_warning['MySql'] = array('Increase Mysql Group Concat Max. Length', 'Step 1: Go to mysql path <br> nano /etc/my.cnf',
         'Step 2: And add the following line below [mysqld] as shown below <br> [mysqld] <br>group_concat_max_len = 4096 or more',
         'Step 3: Save and restart <br> systemctl restart mariadb.service<br> Or <br> service mysqld restart');
@@ -143,13 +145,13 @@ if ($mysql_info['Value'] <= '2000') {
 
 
 // Check Time Zone compatibility
-$conf_tz = $this->sccpvalues['ntp_timezone']['data'];
+$conf_tz = $this->sccpvalues['ntp_timezone']['data'] ?? '';
 $cisco_tz = $this->extconfigs->getExtConfig('sccp_timezone', $conf_tz);
-if ($cisco_tz['offset'] == 0) {
+if (isset($cisco_tz['offset']) && $cisco_tz['offset'] == 0) {
     if (!empty($conf_tz)) {
-        $tmp_dt = new DateTime(null, new DateTimeZone($conf_tz));
+        $tmp_dt = new DateTime('now', new DateTimeZone($conf_tz));
         $tmp_ofset = $tmp_dt->getOffset();
-        if (($cisco_tz['offset'] != ($tmp_ofset / 60) )) {
+        if (isset($cisco_tz['offset']) && ($cisco_tz['offset'] != ($tmp_ofset / 60) )) {
             $this->info_warning['NTP'] = array('The selected NTP time zone is not supported by cisco devices.', 'We will use the Greenwich Time zone');
         }
     }

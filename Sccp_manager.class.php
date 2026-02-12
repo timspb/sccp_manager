@@ -102,9 +102,9 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
     public $sccpHelpInfo = array();
 
     // Move all non sccp_manager specific functions to traits
-    use \FreePBX\modules\Sccp_Manager\sccpManTraits\helperFunctions;
-    use \FreePBX\modules\Sccp_Manager\sccpManTraits\ajaxHelper;   // TODO should migrate this to child class
-    use \FreePBX\modules\Sccp_Manager\sccpManTraits\bmoFunctions;
+    use \FreePBX\modules\Sccp_manager\sccpManTraits\helperFunctions;
+    use \FreePBX\modules\Sccp_manager\sccpManTraits\ajaxHelper;   // TODO should migrate this to child class
+    use \FreePBX\modules\Sccp_manager\sccpManTraits\bmoFunctions;
 
     public function __construct($freepbx = null) {
         if ($freepbx == null) {
@@ -423,7 +423,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                         $btn_t = 'speeddial';
                         $btn_opt = (string) $get_settings["button${it}_line"];
                         $db_res = $this->dbinterface->getSccpDeviceTableData('SccpExtension', array('name' => $btn_opt));
-                        $btn_n = $db_res[0]['label'];
+                        $btn_n = (is_array($db_res) && isset($db_res[0]['label'])) ? $db_res[0]['label'] : $btn_opt;
                         $btn_opt .= ',' . $btn_opt . $this->hint_context['default'];
                         break;
                     case 'speeddial':
@@ -1043,25 +1043,34 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
     function getHintInformation($sort = true, $filter = array()) {
         $res = array();
         $default_hint = '@ext-local';
+        $data_sort = array();
+        $res_sort = array();
 
         if (empty($res)) {
             // Old Req get all hints
             $tmp_data = $this->aminterface->core_list_all_hints();
-            foreach ($tmp_data as $value) {
-                $res[$value] = array('key' => $value, 'exten' => $this->before('@', $value), 'label' => $value);
+            if (is_array($tmp_data)) {
+                foreach ($tmp_data as $value) {
+                    $res[$value] = array('key' => $value, 'exten' => $this->before('@', $value), 'label' => $value);
+                }
             }
         }
 
         // Update info from sccp_db
         $tmp_data = $this->dbinterface->getSccpDeviceTableData('SccpExtension');
-        foreach ($tmp_data as $value) {
-            $name_l = $value['name'];
-            if (!empty($res[$name_l . $default_hint])) {
-                $res[$name_l . $default_hint]['exten'] = $name_l;
-                $res[$name_l . $default_hint]['label'] = $value['label'];
-            } else {
-                // if not exist in system hints ..... ???????
-                $res[$name_l . $default_hint] = array('key' => $name_l . $default_hint, 'exten' => $name_l, 'label' => $value['label']);
+        if (is_array($tmp_data)) {
+            foreach ($tmp_data as $value) {
+                $name_l = $value['name'] ?? '';
+                if ($name_l === '') {
+                    continue;
+                }
+                $label = $value['label'] ?? $name_l;
+                if (!empty($res[$name_l . $default_hint])) {
+                    $res[$name_l . $default_hint]['exten'] = $name_l;
+                    $res[$name_l . $default_hint]['label'] = $label;
+                } else {
+                    $res[$name_l . $default_hint] = array('key' => $name_l . $default_hint, 'exten' => $name_l, 'label' => $label);
+                }
             }
         }
         if (!$sort) {

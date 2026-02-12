@@ -2,7 +2,7 @@
 
 namespace FreePBX\modules\Sccp_manager\sccpManTraits;
 
-trait helperfunctions {
+trait helperFunctions {
     private function convertCsvToArray($stringToConvert = "") {
         // Take a csv string form of net/mask or ip/port and convert to an array
         // sub arrays are separated by ";"
@@ -74,6 +74,7 @@ trait helperfunctions {
 
     private function getIpInformation($type = '') {
         $interfaces = array();
+        $result = array();
         switch ($type) {
             case 'ip4':
                 exec("/sbin/ip -4 -o addr", $result, $ret);
@@ -81,13 +82,18 @@ trait helperfunctions {
             case 'ip6':
                 exec("/sbin/ip -6 -o addr", $result, $ret);
                 break;
-
             default:
                 exec("/sbin/ip -o addr", $result, $ret);
                 break;
         }
+        if (!is_array($result)) {
+            return $interfaces;
+        }
         foreach ($result as $line) {
             $vals = preg_split("/\s+/", $line);
+            if (!isset($vals[1], $vals[2], $vals[3])) {
+                continue;
+            }
             if ($vals[3] == "mtu") {
                 continue;
             }
@@ -98,14 +104,17 @@ trait helperfunctions {
                 continue;
             }
             $ret = preg_match("/(\d*+.\d*+.\d*+.\d*+)[\/(\d*+)]*/", $vals[3], $ip);
-
-            $interfaces[$vals[1] . ':' . $vals[2]] = array('name' => $vals[1], 'type' => $vals[2], 'ip' => ((empty($ip[1]) ? '' : $ip[1])));
+            $interfaces[$vals[1] . ':' . $vals[2]] = array('name' => $vals[1], 'type' => $vals[2], 'ip' => (empty($ip[1]) ? '' : $ip[1]));
         }
         return $interfaces;
     }
 
     private function before($thing, $inthat) {
-        return substr($inthat, 0, strpos($inthat, $thing));
+        if ($inthat === null || $inthat === '') {
+            return '';
+        }
+        $pos = strpos($inthat, $thing);
+        return ($pos !== false) ? substr($inthat, 0, $pos) : $inthat;
     }
 
     private function array_key_exists_recursive($key, $arr) {
@@ -277,8 +286,9 @@ trait helperfunctions {
 
     public function initialiseConfInit(){
         $read_config = \FreePBX::LoadConfig()->getConfig('sccp.conf');
-        $sccp_conf_init['general'] = $read_config['general'];
-        foreach ($read_config as $key => $value) {
+        $sccp_conf_init = array();
+        $sccp_conf_init['general'] = isset($read_config['general']) ? $read_config['general'] : array();
+        foreach (is_array($read_config) ? $read_config : array() as $key => $value) {
             if (isset($read_config[$key]['type'])) { // copy soft key
                 if ($read_config[$key]['type'] == 'softkeyset') {
                     $sccp_conf_init[$key] = $read_config[$key];

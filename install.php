@@ -28,7 +28,7 @@ $cnf_int = \FreePBX::Config();
 // Only include required classes and create anonymous class for thisInstaller
 
 $thisInstaller = new class{
-    use \FreePBX\modules\Sccp_Manager\sccpManTraits\helperFunctions;
+    use \FreePBX\modules\Sccp_manager\sccpManTraits\helperFunctions;
 };
 
 $requiredClasses = array('aminterface', 'extconfigs');
@@ -368,7 +368,8 @@ function CheckAsteriskVersion()
 function CheckChanSCCPCompatible()
 {
     global $aminterface;
-    return $aminterface->getSCCPVersion['vCode'];
+    $ver = $aminterface->getSCCPVersion();
+    return isset($ver['vCode']) ? $ver['vCode'] : 0;
 }
 
 function InstallDB_updateSchema($db_config)
@@ -447,7 +448,7 @@ function InstallDB_updateSchema($db_config)
         $stmt = $db->prepare("DESCRIBE {$tabl_name}");
         $stmt->execute();
         $db_result = $stmt->fetchAll(\PDO::FETCH_ASSOC|\PDO::FETCH_UNIQUE);
-        if (DB::IsError($db_result)) {
+        if ($db_result === false) {
             die_freepbx("Can not get information for " . $tabl_name . " table\n");
         }
 
@@ -459,7 +460,7 @@ function InstallDB_updateSchema($db_config)
                 // occur as columns that are dropped should no longer be in the module.xml schema
                 // and so Doctrine will have already dropped them.
                 if (!empty($tab_modif[$fld_id]['drop'])) {
-                    $sql_create .= "DROP COLUMN {$row_fld}, ";
+                    $sql_create .= "DROP COLUMN {$fld_id}, ";
                     unset($tab_modif[$fld_id]['drop']);
                     continue;
                 }
@@ -712,8 +713,9 @@ function InstallDB_updateSchema($db_config)
     outn("<li>" . _("Fill sccpdevmodel") . "</li>");
     $sql = "REPLACE INTO sccpdevmodel (model, vendor, dns, buttons, loadimage, loadinformationid, enabled, nametemplate) VALUES" . implode(',',$devModelArr);
     $check = $db->query($sql);
-    if (DB::IsError($check)) {
-        die_freepbx("Can not create sccpdevmodel table, error:$check\n");
+    if ($check === false) {
+        $err = $db->errorInfo();
+        die_freepbx("Can not create sccpdevmodel table, error: " . (is_array($err) ? implode(' ', $err) : 'unknown'));
     }
     return;
 }
@@ -746,7 +748,7 @@ function InstallDB_createButtonConfigTrigger()
         END IF;
         END;";
     $check = $db->query($sql);
-    if (DB::IsError($check)) {
+    if ($check === false) {
         die_freepbx("Can not modify sccpdevice table\n");
     }
     outn("<li>" . _("(Re)Create trigger Ok") . "</li>");
@@ -758,8 +760,9 @@ function InstallDB_updateDBVer($sccp_compatible)
     outn("<li>" . _("Update DB Ver") . "</li>");
     $sql = "REPLACE INTO `sccpsettings` (`keyword`, `data`, `seq`, `type`) VALUES ('SccpDBmodel', '". $sccp_compatible. "','30','0');";
     $results = $db->query($sql);
-    if (DB::IsError($results)) {
-        die_freepbx(sprintf(_("Error updating sccpsettings. Command was: %s; error was: %s "), $sql, $results->getMessage()));
+    if ($results === false) {
+        $err = $db->errorInfo();
+        die_freepbx(sprintf(_("Error updating sccpsettings. Command was: %s; error was: %s "), $sql, $err[2] ?? 'unknown'));
     }
     return true;
 }
@@ -863,9 +866,9 @@ function installDbPopulateSccpline() {
         $stmt->bindParam(':accountcode',$valArr['accountcode'],\PDO::PARAM_STR);
         $stmt->bindParam(':description',$description,\PDO::PARAM_STR);
         $stmt->bindParam(':label',$valArr['label'],\PDO::PARAM_STR);
-        $stmt->execute();
-        if (DB::IsError($stmt)) {
-            die_freepbx(sprintf(_("Error inserting into sccpline. Command was: %s; error was: %s "), $stmt, $stmt->getMessage()));
+        if (!$stmt->execute()) {
+            $err = $stmt->errorInfo();
+            die_freepbx(sprintf(_("Error inserting into sccpline. Error was: %s "), $err[2] ?? 'unknown'));
         }
     }
 }
@@ -1022,7 +1025,8 @@ function addDriver($sccp_compatible) {
     global $cnf_int;
     outn("<li>" . _("Adding driver ...") . "</li>");
     $file = $amp_conf['AMPWEBROOT'] . '/admin/modules/core/functions.inc/drivers/Sccp.class.php';
-    $contents = "<?php include '/var/www/html/admin/modules/sccp_manager/sccpManClasses/Sccp.class.php.v{$sccp_compatible}'; ?>";
+    $sccpModulePath = $amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/sccpManClasses/Sccp.class.php.v' . $sccp_compatible;
+    $contents = "<?php include " . var_export($sccpModulePath, true) . "; ?>";
     file_put_contents($file, $contents);
 }
 function checkTftpServer() {
@@ -1093,7 +1097,7 @@ function checkTftpServer() {
     foreach ($settingsFromDb as $settingToSave) {
         $sql = "REPLACE INTO sccpsettings (keyword, data, seq, type, systemdefault) VALUES ('{$settingToSave['keyword']}', '{$settingToSave['data']}', {$settingToSave['seq']}, {$settingToSave['type']}, '{$settingToSave['systemdefault']}')";
         $results = $db->query($sql);
-        if (DB::IsError($results)) {
+        if ($results === false) {
             die_freepbx(_("Error updating sccpsettings. $sql"));
         }
     }
@@ -1243,7 +1247,7 @@ function cleanUpSccpSettings() {
         // Try to convert based on change from on/off to yes/no.
         if (in_array($settingsFromDb[$key]['data'], array('on','off'), true)) {
             if (in_array("'yes'", $valArr, true)) {
-                $settingsFromDb[$key]['data'] = ($settingsFromDb[$key]['data'] = 'on') ? 'yes' : 'no';
+                $settingsFromDb[$key]['data'] = ($settingsFromDb[$key]['data'] == 'on') ? 'yes' : 'no';
                 continue;
             }
         }
