@@ -14,7 +14,7 @@ $forminfo =array(
 $buttons_type=  array("empty","line","silent","monitor","speeddial","feature","adv.line");
 $feature_list=  array('parkinglot'=>'Park Slots','monitor'=> "Record Calls",'devstate'=> "Change Status");
 
-if ($_REQUEST['tech_hardware'] === 'cisco') {
+if (isset($_REQUEST['tech_hardware']) && $_REQUEST['tech_hardware'] === 'cisco') {
     $lines_list = $this->dbinterface->getSccpDeviceTableData('SccpExtension');
 } else {
     $lines_list = $this->dbinterface->getSipTableData('extensionList');

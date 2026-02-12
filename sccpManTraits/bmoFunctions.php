@@ -144,6 +144,27 @@ trait bmoFunctions {
         }
     }
 
+    /**
+     * Return CSS assets for FreePBX Asset Manager (BMO).
+     * @return array
+     */
+    public function getCSS($display = '') {
+        return array(
+            'assets/css/sccp_manager.css'
+        );
+    }
+
+    /**
+     * Return JavaScript assets for FreePBX Asset Manager (BMO).
+     * @return array
+     */
+    public function getJS($display = '') {
+        return array(
+            'assets/js/jquery.selectlistactions.js',
+            'assets/js/sccp_manager.js'
+        );
+    }
+
     public function doGeneralPost() {
         if (!isset($_REQUEST['Submit'])) {
             return;

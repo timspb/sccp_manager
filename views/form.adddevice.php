@@ -114,7 +114,7 @@ if (!empty($def_val['type'])) {
         echo '<input type="hidden" name="sccp_device_id" value="'.$dev_id.'">';
     }
 
-    if ($_REQUEST['tech_hardware'] == 'cisco') {
+    if (isset($_REQUEST['tech_hardware']) && $_REQUEST['tech_hardware'] == 'cisco') {
         echo '<input type="hidden" name="sccp_device_typeid" value="sccpdevice">';
         if (empty($dev_id)) {
             echo $this->showGroup('sccp_hw_dev', 1, 'sccp_hw', $def_val);
@@ -129,7 +129,7 @@ if (!empty($def_val['type'])) {
         echo $this->showGroup('sccp_dev_vendor_conf', 1, 'vendorconfig', $def_val);
         echo $this->showGroup('sccp_hw_dev_network', 1, 'sccp_hw', $def_val);
 
-    } else if ($_REQUEST['tech_hardware'] == 'cisco-sip') {
+    } else if (isset($_REQUEST['tech_hardware']) && $_REQUEST['tech_hardware'] == 'cisco-sip') {
         echo '<input type="hidden" name="sccp_device_typeid" value="sipdevice">';
         /*
         if (empty($dev_new)) {

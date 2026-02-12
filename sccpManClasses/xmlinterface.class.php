@@ -18,6 +18,11 @@ class xmlinterface
     use \FreePBX\modules\Sccp_manager\sccpManTraits\helperFunctions;
     private $val_null = 'NONE'; /// REPLACE to null Field
 
+    /** @var object|null Parent Sccp_manager instance */
+    public $paren_class = null;
+    /** @var array<string, string> locale => code */
+    private $langCodeArray = array();
+
     public function __construct($parent_class = null)
     {
         $this->paren_class = $parent_class;

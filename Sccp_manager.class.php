@@ -93,13 +93,31 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
     private $val_null = 'NONE'; /// REPLACE to null Field
     public $sccp_model_list = array();
     private $cnf_wr = null;
+    /** @var object|null FreePBX config reader */
+    private $cnf_read = null;
     public $sccppath = array();
     public $sccpvalues = array();
     public $sccp_conf_init = array();
+    /** @var \SimpleXMLElement|false|null */
     public $xml_data;
     public $class_error; //error construct
     public $info_warning;
     public $sccpHelpInfo = array();
+
+    /** @var \FreePBX\FreePBX|null */
+    public $FreePBX = null;
+    /** @var \PDO|object */
+    public $db;
+    /** @var \FreePBX\modules\Sccp_manager\aminterface|null */
+    public $aminterface = null;
+    /** @var \FreePBX\modules\Sccp_manager\dbinterface|null */
+    public $dbinterface = null;
+    /** @var \FreePBX\modules\Sccp_manager\extconfigs|null */
+    public $extconfigs = null;
+    /** @var \FreePBX\modules\Sccp_manager\formcreate|null */
+    public $formcreate = null;
+    /** @var \FreePBX\modules\Sccp_manager\xmlinterface|null */
+    public $xmlinterface = null;
 
     // Move all non sccp_manager specific functions to traits
     use \FreePBX\modules\Sccp_manager\sccpManTraits\helperFunctions;
@@ -728,9 +746,9 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
     }
 
     function getDialPlan($get_file) {
+        $res = array();
         $file = $this->sccppath["tftp_dialplan_path"] . '/' . $get_file . '.xml';
         if (file_exists($file)) {
-
             $fileContents = file_get_contents($file);
             $fileContents = str_replace(array("\n", "\r", "\t"), '', $fileContents);
             $fileContents = trim(str_replace('"', "'", $fileContents));
@@ -741,6 +759,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
     }
 
     function deleteDialPlan($get_file) {
+        $res = false;
         $file = $this->sccppath["tftp_dialplan_path"] . '/' . $get_file . '.xml';
         if (file_exists($file)) {
             $res = unlink($file);

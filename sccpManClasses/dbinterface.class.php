@@ -11,8 +11,19 @@ namespace FreePBX\modules\Sccp_manager;
 
 class dbinterface
 {
-
     private $val_null = 'NONE'; /// REPLACE to null Field
+
+    /** Integer columns per table for MariaDB strict mode (empty string -> 0 or NULL) */
+    private static $integerColumns = array(
+        'sccpdevice' => array('profileid', 'keepalive'),
+        'sccpdevmodel' => array('dns', 'buttons', 'enabled'),
+        'sccpuser' => array(),
+    );
+
+    /** @var object|null Parent Sccp_manager instance */
+    public $paren_class = null;
+    /** @var \PDO|object */
+    public $db;
 
     public function __construct($parent_class = null)
     {
@@ -283,17 +294,26 @@ class dbinterface
             case 'sccpuser':
                 $sql_key = "";
                 $sql_var = "";
+                $int_cols = isset(self::$integerColumns[$table_name]) ? self::$integerColumns[$table_name] : array();
                 foreach ($save_value as $key_v => $data) {
                     if (!empty($sql_var)) {
                         $sql_var .= ', ';
                     }
                     if ($data === $this->val_null) {
-                        $sql_var .= $key_v . '= NULL';
+                        $sql_var .= $key_v . ' = NULL';
+                    } elseif (in_array($key_v, $int_cols, true)) {
+                        if ($data === '' || $data === null) {
+                            $sql_var .= $key_v . ' = 0';
+                        } else {
+                            $sql_var .= $key_v . ' = ' . (int) $data;
+                        }
                     } else {
-                        $sql_var .= $key_v . ' = \'' . $data . '\''; //quote data as normally is string
+                        $sql_var .= $key_v . " = " . $this->db->quote((string) $data);
                     }
                     if ($key_v === $key_fld) {
-                        $sql_key = $key_v . ' = \'' . $data . '\'';  //quote data as normally is string
+                        $sql_key = in_array($key_v, $int_cols, true)
+                            ? $key_v . ' = ' . (int) $data
+                            : $key_v . " = " . $this->db->quote((string) $data);
                     }
                 }
                 if (!empty($sql_var)) {
@@ -307,10 +327,9 @@ class dbinterface
                         case 'replace':
                             $stmt = $this->db->prepare("REPLACE INTO {$table_name} SET {$sql_var}");
                             break;
-                        // no default mode - must be explicit.
                     }
+                    $result = $stmt->execute();
                 }
-                $result = $stmt->execute();
                 break;
             case 'sccpbuttons':
                 switch ($mode) {

@@ -6,6 +6,11 @@ class formcreate
 {
     use \FreePBX\modules\Sccp_manager\sccpManTraits\helperFunctions;
 
+    /** @var string */
+    public $buttonDefLabel = 'chan-sccp';
+    /** @var string */
+    public $buttonHelpLabel = 'site';
+
     public function __construct($parent_class = null) {
         $this->buttonDefLabel = 'chan-sccp';
         $this->buttonHelpLabel = 'site';
