@@ -9,12 +9,12 @@
   * [Links](#link)
   * [Wiki](https://github.com/chan-sccp/chan-sccp/wiki)
 
-**This repository:** [timspb/sccp_manager](https://github.com/timspb/sccp_manager) — active development fork of chan-sccp/sccp_manager.  
-Module version 17.0.1.0 (production-ready for FreePBX 16/17, PHP 8.2+).
+**This repo is a fork:** [timspb/sccp_manager](https://github.com/timspb/sccp_manager) ← [chan-sccp/sccp_manager](https://github.com/chan-sccp/sccp_manager).  
+Install links below point to **upstream** by default; you can use this fork's URLs if you need builds from here.
 
 ## Link
 
-[![Download Sccp-Manager](https://img.shields.io/badge/SccpGUI-build-ff69b4.svg)](https://github.com/timspb/sccp_manager/archive/refs/heads/develop.zip)
+[![Download Sccp-Manager](https://img.shields.io/badge/SccpGUI-build-ff69b4.svg)](https://github.com/chan-sccp/sccp_manager/archive/refs/heads/develop.zip)
 [![Chan-SCCP channel driver for Asterisk](https://img.shields.io/sourceforge/dt/chan-sccp-b.svg)](https://github.com/chan-sccp/chan-sccp/releases/latest)
 [![Chan-SCCP Documentation](https://img.shields.io/badge/docs-wiki-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki)
 
@@ -74,24 +74,24 @@ apt-get install php8.2-zip
 
 **Develop (recommended for FreePBX 16/17, PHP 8.2+)**
 
-Compatible with FreePBX 16/17, Asterisk 21/22/23, and PHP 8.2+. Includes latest fixes and production-ready improvements (XSS escaping, i18n, logging).
+Compatible with FreePBX 16/17, Asterisk 21/22/23, and PHP 8.2+.
 
 _This is development software and may have issues._
 
 ```
-https://github.com/timspb/sccp_manager/archive/refs/heads/develop.zip
-```
-
-**Stable (tagged release)**
-
-```
-https://github.com/timspb/sccp_manager/archive/refs/tags/v17.0.1.0.tar.gz
-```
-
-**Upstream (chan-sccp)**
-
-```
 https://github.com/chan-sccp/sccp_manager/archive/refs/heads/develop.zip
+```
+
+**Stable (upstream tagged release)**
+
+```
+https://github.com/chan-sccp/sccp_manager/archive/refs/tags/v14.6.0.0.tar.gz
+```
+
+**Or from this fork (timspb/sccp_manager)** — develop or tag v17.0.1.0:
+
+```
+https://github.com/timspb/sccp_manager/archive/refs/heads/develop.zip
 ```
 
 5. Click **Download From Web**.
