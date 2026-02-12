@@ -261,9 +261,9 @@ class xmlinterface
                                 //Now have an array of srst addresses - maybe empty
 
                                 foreach ($srst_addrs as $netKey => $netValue) {
-                                    $nodeName = "ipAddr${netKey}";
+                                    $nodeName = "ipAddr{$netKey}";
                                     $xnode->$nodeName = $netValue['ip'];
-                                    $nodeName = "port${netKey}";
+                                    $nodeName = "port{$netKey}";
                                     $xnode->$nodeName = $netValue['port'];
                                 }
                                 break;

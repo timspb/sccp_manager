@@ -375,13 +375,14 @@ class dbinterface
         return $result;
     }
     //******** Get SIP settings *******
-    public function getSipTableData(string $dataid, $line='') {
+    public function getSipTableData(string $dataid, $line = '') {
         global $db;
+        $line = (string) ($line ?? '');
         $tech = array();
         switch ($dataid) {
             case "DeviceById":
                 // TODO: This needs to be rewritten
-                $stmt = $this->db->prepare("SELECT keyword,data FROM sip WHERE id = '${line}'");
+                $stmt = $this->db->prepare("SELECT keyword,data FROM sip WHERE id = '{$line}'");
                 $stmt->execute();
                 $tech = $stmt->fetchAll(\PDO::FETCH_COLUMN | \PDO::FETCH_GROUP);
                 foreach ($tech as &$value) {

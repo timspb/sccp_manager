@@ -29,6 +29,8 @@ class aminterface
     private $_DumpMessage;
     private $debug_level = 1;
     private $_incomingRawMessage;
+    /** @var resource|null */
+    private $_context;
     /** @var array */
     private $_eventListeners = array();
     /** @var array */

@@ -318,7 +318,7 @@ trait helperFunctions {
                 // write a sentinel to a tftp subdirectory to see if mapping is working
 
                 if (is_dir($testFtpDir) && is_writable($testFtpDir)) {
-                    $tempFile = "${testFtpDir}/{$remoteFileName}";
+                    $tempFile = "{$testFtpDir}/{$remoteFileName}";
                     file_put_contents($tempFile, $remoteFileContent);
                     // try to pull the written file through tftp.
                     // this way we can determine if mapping is active and using sccp_manager maps

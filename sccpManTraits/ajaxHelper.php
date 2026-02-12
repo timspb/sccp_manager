@@ -707,16 +707,16 @@ trait ajaxHelper {
                     break;
                 default:
                     // handle vendor prefix
-                    if (!empty($get_settings["${hdr_vendPrefix}${key}"])) {
-                        $value = $get_settings["${hdr_vendPrefix}${key}"];
+                    if (!empty($get_settings["{$hdr_vendPrefix}{$key}"])) {
+                        $value = $get_settings["{$hdr_vendPrefix}{$key}"];
                     }
                     // handle array prefix
-                    if (!empty($get_settings["${hdr_arprefix}${key}"])) {
+                    if (!empty($get_settings["{$hdr_arprefix}{$key}"])) {
                         // Only 3 types of array returned permit,deny, setvar
                         $arr_data = '';
                         $arr_clear = false;
                         $output = array();
-                        foreach ($get_settings["${hdr_arprefix}${key}"] as $netValue) {
+                        foreach ($get_settings["{$hdr_arprefix}{$key}"] as $netValue) {
                             switch ($key) {
                                 case 'permit':
                                 case 'deny':
