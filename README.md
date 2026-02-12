@@ -16,7 +16,7 @@
 
 This FreePBX module helps manage Asterisk–Cisco infrastructure: provisioning and administration of Cisco IP phones and extensions in a way similar to Cisco CallManager.
 
-**Compatibility (develop branch):** FreePBX 16/17, Asterisk 21, PHP 8.2+, chan-sccp 4.3.5+.
+**Compatibility (develop branch):** FreePBX 16/17, Asterisk 21/22/23, PHP 8.2+, chan-sccp 4.3.5+.
 The idea of creating a module is borrowed from (https://github.com/Cynjut/SCCP_Manager), and was further developed and managed
 by PhantomVl (https://github.com/PhantomVl/sccp_manager) who has been unavailable for some time. sccp_manager relies heavily
 on chan-sccp, so having the same repository will help improve integration.

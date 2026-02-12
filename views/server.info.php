@@ -118,10 +118,11 @@ if (empty($ast_realtime)) {
     }
     $info['RealTime'] = array('Version' => $rt_sccp, 'about' => $rt_info);
 }
-// There are potential issues with string Type Declarations in PHP 5.
-$info['PHP'] = array('Version' => phpversion(), 'about' => version_compare(phpversion(), '7.0.0', '>' ) ? 'OK' : 'PHP 7 Preferred - Please upgrade if possible');
+$phpVer = phpversion();
+$info['PHP'] = array('Version' => $phpVer, 'about' => version_compare($phpVer, '8.2.0', '>=') ? 'OK' : 'PHP 8.2+ preferred for FreePBX 16/17');
 $mariaDbInfo = exec('mysql -V');
-$info['MariaDb'] = array('Version' => explode(" ",$mariaDbInfo)[3], 'about' => $mariaDbInfo);
+$mariaParts = $mariaDbInfo ? explode(' ', $mariaDbInfo) : array();
+$info['MariaDb'] = array('Version' => isset($mariaParts[3]) ? $mariaParts[3] : 'n/a', 'about' => $mariaDbInfo ?: 'mysql not in PATH');
 
 if (empty($conf_realtime)) {
     $info['ConfigsRealTime'] = array('Version' => 'Error', 'about' => '<div class="alert signature alert-danger"> Realtime configuration was not found</div>');

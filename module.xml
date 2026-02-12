@@ -43,7 +43,7 @@
 		 * Version 14.4.0.5 * - Fix issue #59.
 		 * Version 14.5.0.2 * - Fix issue #32.
 		 * Version 14.5.0.4 * - Fix issue where values with spaces are truncated. Preserve softkeys accross installs
-		 * Version 14.6.0.0 * - PHP 8.2 and FreePBX 16/17 compatibility: namespace fixes, null-safe ops, DB::IsError removed, module.xml deps updated
+		 * Version 14.6.0.0 * - PHP 8.2, FreePBX 16/17, Asterisk 21/22/23: namespace fixes, null-safe ops, DB::IsError removed, module.xml deps updated
 	</changelog>
 	<location>https://github.com/chan-sccp/sccp_manager</location>
 	<depends>

@@ -49,23 +49,16 @@
 Ну и как водится у на SCCP Manager это бесплатное дополнение. И помни "(C)" означает "Копия верна". Please see the file COPYING for details.
 
 
-### Prerequisites - как говориться все, что хуже этого возможно работать тоже будет .... но только вопрос как ?
-Make sure you have the following installed on your system:
-- PHPx.x-zip has to be installed (where x.x is the installed version of PHP).
-  For example, on Debian, using PHP7.3
-
-- pbx:
-  - asterisk >= 1.8 (absolute minimum & not recommended)
-  - asterisk >= 13.7 or asterisk >= 14.0 or asterisk >= 15.0 (Тестировалось на стендах)
-- gui:
-  - freepbx >= 13.0.192 (http://wiki.freepbx.org/display/FOP/Install+FreePBX)
-- standard posix compatible applications like sed, awk, tr
-- a working version of [chan-sccp](https://github.com/chan-sccp/chan-sccp)
-- PHPx.x Ну тут уж как повезет, 5.6 от freepbx, но мы уже пишем под PHP7.3
-
+### Prerequisites — требования к системе
+- **GUI:** FreePBX 16 или 17
+- **PHP:** 8.2 или новее
+- **Asterisk:** 12.2+ (рекомендуется 21, 22, 23)
+- **chan-sccp:** 4.3.4+ (рекомендуется 4.3.5+)
+- Расширение PHP zip (например, в Debian с PHP 8.2):
 ```
-apt-get install PHP7.3-zip
+apt-get install php8.2-zip
 ```
+- Стандартные POSIX-утилиты (sed, awk, tr) и рабочая [chan-sccp](https://github.com/chan-sccp/chan-sccp)
 ### Installation Очень короткая инструкция
 - открой полную инструкцию [Полная версия инструкции] (https://github.com/PhantomVl/sccp_manager/wiki/step-by-step-instlation)
 

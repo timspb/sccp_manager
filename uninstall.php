@@ -60,11 +60,15 @@ function createBackUpConfig()
 }
 
 if (!empty($version)) {
-    $check = $db->getRow("SELECT 1 FROM `kvstore` LIMIT 0", DB_FETCHMODE_ASSOC);
-    if (!(DB::IsError($check))) {
-        outn("<li>" . _("Deleting keys FROM kvstore..") . "</li>");
-        sql("DELETE FROM kvstore WHERE module = 'sccpsettings'");
-        sql("DELETE FROM kvstore WHERE module = 'Sccp_manager'");
+    try {
+        $check = $db->query("SELECT 1 FROM kvstore LIMIT 0");
+        if ($check !== false) {
+            outn("<li>" . _("Deleting keys FROM kvstore..") . "</li>");
+            $db->query("DELETE FROM kvstore WHERE module = 'sccpsettings'");
+            $db->query("DELETE FROM kvstore WHERE module = 'Sccp_manager'");
+        }
+    } catch (\Throwable $e) {
+        // kvstore may not exist or use different driver (PDO)
     }
   }
   // FreePbx removes all tables via module.xml, and uninstaller will error

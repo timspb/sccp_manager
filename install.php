@@ -350,15 +350,13 @@ function CheckAsteriskVersion()
     $version = FreePBX::Config()->get('ASTVERSION');
     outn("<li>" . _("Checking Asterisk Version : ") . $version . "</li>");
     if (!empty($version)) {
-        // Woo, we have a version
+        // Asterisk 12.2+ (includes 16, 18, 19, 20, 21, 22, 23)
         if (version_compare($version, "12.2.0", ">=")) {
             $ver_compatible = true;
         } else {
-            die_freepbx('Asterisk Version is to old, please upgrade to asterisk-12 or higher. Installation Failed');
+            die_freepbx('Asterisk version is too old. Please upgrade to Asterisk 12.2 or higher (21, 22, 23 supported). Installation Failed');
         }
     } else {
-        // Well. I don't know what version of Asterisk I'm running.
-        // Assume less than 12.
         $ver_compatible = false;
         die_freepbx('Asterisk Version could not be verified. Installation Failed');
     }
