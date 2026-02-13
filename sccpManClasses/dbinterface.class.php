@@ -175,33 +175,62 @@ class dbinterface
                 // No default case so will give exception of $raw_settings undefined if the
                 // dataid is not in the switch.
         }
-        if (!empty($stmt)) {
-            $stmt->execute();
-            $raw_settings = $stmt->fetch(\PDO::FETCH_ASSOC);
-        } elseif (!empty($stmts)) {
-            $stmts->execute();
-            $raw_settings = $stmts->fetchAll(\PDO::FETCH_ASSOC);
-        } elseif (!empty($stmtU)) {
-            //returns an assoc array indexed on first field
-          $stmtU->execute();
-          $raw_settings = $stmtU->fetchAll(\PDO::FETCH_ASSOC|\PDO::FETCH_UNIQUE);
+        try {
+            if (!empty($stmt)) {
+                $stmt->execute();
+                $raw_settings = $stmt->fetch(\PDO::FETCH_ASSOC);
+            } elseif (!empty($stmts)) {
+                $stmts->execute();
+                $raw_settings = $stmts->fetchAll(\PDO::FETCH_ASSOC);
+            } elseif (!empty($stmtU)) {
+                //returns an assoc array indexed on first field
+                $stmtU->execute();
+                $raw_settings = $stmtU->fetchAll(\PDO::FETCH_ASSOC|\PDO::FETCH_UNIQUE);
+            }
+        } catch (\PDOException $e) {
+            // Log the error and return empty array to prevent crashes
+            error_log("Database error in getSccpDeviceTableData: " . $e->getMessage());
+            $raw_settings = array();
         }
+        
+        // Ensure we return an array and cast values to proper types for PHP 8.2
+        if (!is_array($raw_settings)) {
+            $raw_settings = array();
+        }
+        
         return $raw_settings;
     }
 
     public function get_db_SccpSetting()
     {
-        $stmt = $this->db->prepare('SELECT keyword, sccpsettings.* FROM sccpsettings ORDER BY type, seq');
-        $stmt->execute();
-        $settingsFromDb = $stmt->fetchAll(\PDO::FETCH_ASSOC|\PDO::FETCH_UNIQUE);
-        return $settingsFromDb;
+        try {
+            $stmt = $this->db->prepare('SELECT keyword, sccpsettings.* FROM sccpsettings ORDER BY type, seq');
+            $stmt->execute();
+            $settingsFromDb = $stmt->fetchAll(\PDO::FETCH_ASSOC|\PDO::FETCH_UNIQUE);
+            
+            // Ensure we return an array for PHP 8.2 compatibility
+            if (!is_array($settingsFromDb)) {
+                $settingsFromDb = array();
+            }
+            
+            return $settingsFromDb;
+        } catch (\PDOException $e) {
+            error_log("Database error in get_db_SccpSetting: " . $e->getMessage());
+            return array();
+        }
     }
 
     public function get_db_sysvalues()
     {
-        $stmt = $this->db->prepare('SHOW VARIABLES LIKE \'%group_concat%\'');
-        $stmt->execute();
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare('SHOW VARIABLES LIKE \'%group_concat%\'');
+            $stmt->execute();
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return is_array($result) ? $result : array();
+        } catch (\PDOException $e) {
+            error_log("Database error in get_db_sysvalues: " . $e->getMessage());
+            return array();
+        }
     }
 
     /*
@@ -260,8 +289,15 @@ class dbinterface
                 $stmt = $this->db->prepare("SELECT {$sel_inf} FROM sccpdevmodel ORDER BY model");
                 break;
         }
-        $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        try {
+            $stmt->execute();
+            $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            return is_array($result) ? $result : array();
+        } catch (\PDOException $e) {
+            error_log("Database error in getDb_model_info: " . $e->getMessage());
+            return array();
+        }
     }
 
     function write($table_name = "", $save_value = array(), $mode = 'update', $key_fld = "", $hwid = "")
@@ -379,17 +415,25 @@ class dbinterface
         global $db;
         $line = (string) ($line ?? '');
         $tech = array();
-        switch ($dataid) {
-            case "DeviceById":
-                // TODO: This needs to be rewritten
-                $stmt = $this->db->prepare("SELECT keyword,data FROM sip WHERE id = '{$line}'");
-                $stmt->execute();
-                $tech = $stmt->fetchAll(\PDO::FETCH_COLUMN | \PDO::FETCH_GROUP);
-                foreach ($tech as &$value) {
-                    $value = $value[0];
-                }
+        
+        try {
+            switch ($dataid) {
+                case "DeviceById":
+                    // TODO: This needs to be rewritten
+                    $stmt = $this->db->prepare("SELECT keyword,data FROM sip WHERE id = '{$line}'");
+                    $stmt->execute();
+                    $tech = $stmt->fetchAll(\PDO::FETCH_COLUMN | \PDO::FETCH_GROUP);
+                    
+                    // Ensure we have an array and cast values for PHP 8.2
+                    if (is_array($tech)) {
+                        foreach ($tech as &$value) {
+                            $value = is_array($value) && isset($value[0]) ? (string) $value[0] : '';
+                        }
+                    } else {
+                        $tech = array();
+                    }
 
-                return $tech;
+                    return $tech;
             case "extensionList";
                 $stmt = $this->db->prepare("SELECT id as name, data as label  FROM sip WHERE keyword = 'callerid' order by name");
                 $stmt->execute();
@@ -402,7 +446,11 @@ class dbinterface
                     $tech[$value['id']][$value['keyword']]=$value['data'];
                 }
                 */
-                return $result;
+                return is_array($result) ? $result : array();
+        }
+        } catch (\PDOException $e) {
+            error_log("Database error in getSipTableData: " . $e->getMessage());
+            return array();
         }
     }
 
