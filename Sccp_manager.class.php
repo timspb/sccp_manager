@@ -322,7 +322,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                         "page" => 'views/advserver.keyset.php'
                     )
                 );
-                if ($this->sccpvalues['siptftp']['data'] == 'on') {
+                if (($this->sccpvalues['siptftp']['data'] ?? 'off') == 'on') {
                     $this->pagedata["sccpdialplan"] = array(
                         "name" => _("SIP Dial Plan information"),
                         "page" => 'views/advserver.dialtemplate.php'
@@ -393,7 +393,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                         "page" => 'views/hardware.phone.php'
                     )
                 );
-                if ($this->sccpvalues['siptftp']['data'] == 'on') {
+                if (($this->sccpvalues['siptftp']['data'] ?? 'off') == 'on') {
                     $this->pagedata["sipdevice"] = array(
                         "name" => _("SIP CISCO Phone"),
                         "page" => 'views/hardware.sphone.php'
@@ -603,7 +603,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         $allSupported = array();
         $sccpCodec = array_fill_keys(array('alaw', 'ulaw', 'g722', 'g723', 'g726', 'g729', 'gsm', 'h264', 'h263', 'h261'),0);
         // First see if have any site defaults
-        $val = $this->sccpvalues['allow']['data'];
+        $val = $this->sccpvalues['allow']['data'] ?? '';
         if (empty($val)) {
             // No site defaults so return chan-sccp defaults
             $val = $this->sccpvalues['allow']['systemdefault'];
@@ -649,7 +649,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         $result = array();
 
         if (!file_exists("{$this->sccppath['tftp_path']}/masterFilesStructure.xml")) {
-            if (!$this->getFileListFromProvisioner($this->sccpvalues['tftp_path']['data'])) {
+            if (!$this->getFileListFromProvisioner($this->sccpvalues['tftp_path']['data'] ?? '/var/lib/tftp')) {
                 // File does not exist and cannot get from internet.
                 return $result;
             };
@@ -721,15 +721,15 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
 
     function initializeSccpPath() {
         $this->sccppath = array(
-                    'asterisk' => $this->sccpvalues['asterisk_etc_path']['data'],
-                    'tftp_path' => $this->sccpvalues['tftp_path']['data'],
-                    'tftp_templates_path' => $this->sccpvalues['tftp_templates_path']['data'],
-                    'tftp_store_path' => $this->sccpvalues['tftp_store_path']['data'],
-                    'tftp_lang_path' => $this->sccpvalues['tftp_lang_path']['data'],
-                    'tftp_firmware_path' => $this->sccpvalues['tftp_firmware_path']['data'],
-                    'tftp_dialplan_path' => $this->sccpvalues['tftp_dialplan_path']['data'],
-                    'tftp_softkey_path' => $this->sccpvalues['tftp_softkey_path']['data'],
-                    'tftp_countries_path' => $this->sccpvalues['tftp_countries_path']['data']
+                    'asterisk' => $this->sccpvalues['asterisk_etc_path']['data'] ?? '/etc/asterisk',
+                    'tftp_path' => $this->sccpvalues['tftp_path']['data'] ?? '/var/lib/tftp',
+                    'tftp_templates_path' => $this->sccpvalues['tftp_templates_path']['data'] ?? '',
+                    'tftp_store_path' => $this->sccpvalues['tftp_store_path']['data'] ?? '',
+                    'tftp_lang_path' => $this->sccpvalues['tftp_lang_path']['data'] ?? '',
+                    'tftp_firmware_path' => $this->sccpvalues['tftp_firmware_path']['data'] ?? '',
+                    'tftp_dialplan_path' => $this->sccpvalues['tftp_dialplan_path']['data'] ?? '',
+                    'tftp_softkey_path' => $this->sccpvalues['tftp_softkey_path']['data'] ?? '',
+                    'tftp_countries_path' => $this->sccpvalues['tftp_countries_path']['data'] ?? ''
                   );
 
         // initialise $sccp_conf_init
@@ -1028,7 +1028,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         $file_ext = array('.loads', '.sbn', '.bin', '.zup', '.sbin', '.SBN', '.LOADS');
         $dir = $this->sccppath['tftp_firmware_path'];
 
-        $search_mode = $this->sccpvalues['tftp_rewrite']['data'];
+        $search_mode = $this->sccpvalues['tftp_rewrite']['data'] ?? 'off';
         switch ($search_mode) {
             case 'pro':
             case 'on':
