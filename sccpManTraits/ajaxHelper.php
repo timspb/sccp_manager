@@ -597,10 +597,10 @@ trait ajaxHelper {
         $provisionerUrl = "https://github.com/dkgroot/provision_sccp/raw/master/";
         $tftpPath = $this->sccppath['tftp_path'] ?? '';
         $masterXml = $tftpPath . '/masterFilesStructure.xml';
-        if (!file_exists($masterXml)) {
+        if (!file_exists($masterXml) || @simplexml_load_file($masterXml) === false) {
             if (!$this->getFileListFromProvisioner($tftpPath)) {
                 return array('status' => false,
-                    'message' => $provisionerUrl . "tools/tftpbootFiles.xml cannot be fetched. Check permissions (e.g. " . $tftpPath . " writable by web server), connectivity to github.com, and that the URL exists.",
+                    'message' => $provisionerUrl . "tools/tftpbootFiles.xml cannot be fetched and bundled list unavailable. Check permissions (e.g. " . $tftpPath . " writable by web server), connectivity to github.com.",
                     'reload' => false);
             }
         }

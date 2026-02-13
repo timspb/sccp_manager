@@ -358,14 +358,25 @@ trait helperFunctions {
     }
 
     /**
-     * Download a URL to a file (follows redirects, works with GitHub raw URLs).
-     * Uses raw.githubusercontent.com for GitHub URLs to avoid redirect-related 0-byte downloads.
-     * Prefers cURL; falls back to file_get_contents with stream context if cURL unavailable.
-     * @param string $url Full URL (e.g. https://github.com/.../raw/master/path/file.xml)
+     * Download a URL to a file. Tries original chan-sccp method (file_get_contents on github raw URL) first, then cURL/raw.githubusercontent.com.
+     * @param string $url Full URL (e.g. https://github.com/dkgroot/provision_sccp/raw/master/...)
      * @param string $destPath Absolute path to save file
      * @return bool true on success, false on failure
      */
     public function fetchUrlToFile(string $url, string $destPath): bool {
+        // 1) Original chan-sccp/sccp_manager method: file_get_contents (follows redirect to raw content)
+        $content = @file_get_contents($url, false, $this->getHttpStreamContext());
+        if ($content !== false) {
+            if (file_put_contents($destPath, $content) !== false) {
+                if (filesize($destPath) === 0 && preg_match('/\.(loads|sbn|bin|zup|sbin|SBN|LOADS)$/i', $destPath)) {
+                    @unlink($destPath);
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        // 2) Direct raw.githubusercontent.com + cURL (no redirect)
         $url = $this->normalizeGitHubRawUrl($url);
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
@@ -384,7 +395,8 @@ trait helperFunctions {
                 CURLOPT_TIMEOUT => 60,
                 CURLOPT_CONNECTTIMEOUT => 15,
                 CURLOPT_SSL_VERIFYPEER => true,
-                CURLOPT_USERAGENT => 'FreePBX-sccp_manager/1.0',
+                CURLOPT_USERAGENT => 'Mozilla/5.0 (compatible; FreePBX-sccp_manager/1.0; +https://github.com/timspb/sccp_manager)',
+                CURLOPT_HTTPHEADER => ['Accept: application/octet-stream'],
             ]);
             $ok = curl_exec($ch);
             $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -412,7 +424,7 @@ trait helperFunctions {
             'http' => [
                 'follow_location' => 1,
                 'timeout' => 60,
-                'user_agent' => 'FreePBX-sccp_manager/1.0',
+                'user_agent' => 'Mozilla/5.0 (compatible; FreePBX-sccp_manager/1.0; +https://github.com/timspb/sccp_manager)',
             ],
             'ssl' => ['verify_peer' => true],
         ]);
@@ -420,17 +432,66 @@ trait helperFunctions {
         if ($content === false) {
             return false;
         }
-        return (file_put_contents($destPath, $content) !== false);
+        if (file_put_contents($destPath, $content) === false) {
+            return false;
+        }
+        // Reject 0-byte firmware files in fallback path too
+        if (strlen($content) === 0 && preg_match('/\.(loads|sbn|bin|zup|sbin|SBN|LOADS)$/i', $destPath)) {
+            @unlink($destPath);
+            return false;
+        }
+        return true;
     }
 
+    /**
+     * Default stream context for HTTP (follow redirects, timeout). Same as original chan-sccp/sccp_manager.
+     */
+    private function getHttpStreamContext() {
+        return stream_context_create([
+            'http' => [
+                'follow_location' => 1,
+                'timeout' => 60,
+            ],
+            'ssl' => ['verify_peer' => true],
+        ]);
+    }
+
+    /**
+     * Ensure masterFilesStructure.xml exists and is valid XML in tftp root.
+     * Tries: (1) original chan-sccp method file_get_contents(github raw URL), (2) fetchUrlToFile (cURL/raw.githubusercontent.com), (3) bundled contrib/masterFilesStructure.xml.
+     */
     public function getFileListFromProvisioner(string $tftpRootPath): bool {
         $provisionerUrl = 'https://github.com/dkgroot/provision_sccp/raw/master/';
         $url = $provisionerUrl . 'tools/tftpbootFiles.xml';
         $dest = $tftpRootPath . '/masterFilesStructure.xml';
-        if (!$this->fetchUrlToFile($url, $dest)) {
-            return false;
+        $bundled = dirname(__DIR__) . '/contrib/masterFilesStructure.xml';
+
+        // 1) Original method: file_get_contents + file_put_contents (as in chan-sccp/sccp_manager)
+        $content = @file_get_contents($url, false, $this->getHttpStreamContext());
+        if ($content !== false && $content !== '' && file_put_contents($dest, $content) !== false && @simplexml_load_file($dest) !== false) {
+            return true;
         }
-        return true;
+        if (file_exists($dest)) {
+            @unlink($dest);
+        }
+
+        // 2) cURL / raw.githubusercontent.com
+        $ok = $this->fetchUrlToFile($url, $dest);
+        if ($ok && @simplexml_load_file($dest) !== false) {
+            return true;
+        }
+        if ($ok) {
+            @unlink($dest);
+        }
+
+        // 3) Bundled XML
+        if (is_readable($bundled) && copy($bundled, $dest)) {
+            if (@simplexml_load_file($dest) !== false) {
+                return true;
+            }
+            @unlink($dest);
+        }
+        return false;
     }
 
     public function getChanSccpSettings() {

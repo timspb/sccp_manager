@@ -152,22 +152,30 @@ global $amp_conf;
 <?php
 
 $selectArray = array();
-//below probably unnecessary as installer should ensure that a copy always exists
-// TODO: Maybe should always check here to ensure that have latest
-if (!file_exists("{$this->sccppath['tftp_path']}/masterFilesStructure.xml")) {
-    if (!$this->getFileListFromProvisioner($this->sccppath['tftp_path'])) {
-        // File does not exist and cannot get from internet.
-        return $result;
-    };
-}
-$tftpBootXml = simplexml_load_file("{$this->sccppath['tftp_path']}/masterFilesStructure.xml");
-$firmwareDir = $tftpBootXml->xpath("//Directory[@name='firmware']");
+$masterXmlPath = "{$this->sccppath['tftp_path']}/masterFilesStructure.xml";
+$bundledXmlPath = __DIR__ . '/../contrib/masterFilesStructure.xml';
 
-foreach ($firmwareDir[0] as $child) {
-    if (!empty((string)$child['name'])) {
-        $selectArray[(string)$child['name']] = (string)$child['name'];
+// Ensure we have valid XML with firmware list (for dropdown "Fetch Files for")
+if (!file_exists($masterXmlPath) || @simplexml_load_file($masterXmlPath) === false) {
+    $this->getFileListFromProvisioner($this->sccppath['tftp_path']);
+}
+$tftpBootXml = @simplexml_load_file($masterXmlPath);
+$firmwareDir = ($tftpBootXml !== false) ? $tftpBootXml->xpath("//Directory[@name='firmware']") : array();
+
+if (empty($firmwareDir)) {
+    // TFTP XML missing or invalid — use bundled list so the menu is never empty
+    $tftpBootXml = @simplexml_load_file($bundledXmlPath);
+    $firmwareDir = ($tftpBootXml !== false) ? $tftpBootXml->xpath("//Directory[@name='firmware']") : array();
+}
+
+if (!empty($firmwareDir)) {
+    foreach ($firmwareDir[0] as $child) {
+        // Only Directory elements with name (skip DirectoryPath and avoid parent "firmware")
+        if ($child->getName() === 'Directory' && !empty((string)$child['name']) && (string)$child['name'] !== 'firmware') {
+            $selectArray[(string)$child['name']] = (string)$child['name'];
+        }
     }
-};
+}
 
 include($amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/views/getFileModal.html');
 
