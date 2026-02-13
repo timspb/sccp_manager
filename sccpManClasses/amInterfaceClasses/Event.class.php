@@ -16,6 +16,7 @@ abstract class Event extends IncomingMessage
 {
 
     protected $_events;
+    protected $_completed;
 
     public function getName()
     {
