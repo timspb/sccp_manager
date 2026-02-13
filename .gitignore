@@ -1,2 +1,5 @@
 *~
 dist/
+*.code-workspace
+.idea/
+.phpunit.result.cache

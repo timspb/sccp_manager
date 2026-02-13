@@ -55,6 +55,22 @@ fwconsole ma upgrade sccp_manager
 
 ---
 
+## Deployment (what install does)
+
+When you run **Install** in Module Admin, the module:
+
+1. **Checks chan-sccp** — Must be installed and running (Asterisk loads it). If not, install stops.
+2. **Backup** — Zips `extensions.conf`, `extconfig`, `res_*`, `sccp*.conf` and a DB dump under `ASTETCDIR`.
+3. **DB schema** — Creates/updates tables: `sccpdevice`, `sccpline`, `sccpdevmodel`, `sccpuser`, `sccpbuttonconfig`, `sccpsettings`. Drops old **tables** `sccpdeviceconfig` / `sccplineconfig` if present, then creates them as **VIEWs** (realtime for chan-sccp).
+4. **Realtime** — Writes `extconfig` so chan-sccp uses `sccpdeviceconfig` and `sccplineconfig`; ensures `res_config_mysql.conf` (or `res_mysql.conf`) has the DB section.
+5. **Driver** — Copies `sccp_manager/sccpManClasses/Sccp.class.php.v*` into FreePBX core drivers so Devices see SCCP.
+6. **TFTP** — Detects TFTP root (e.g. `/tftpboot`), writes rewrite rules, saves paths to `sccpsettings`. If TFTP is down or root not found, install stops.
+7. **masterFilesStructure.xml** — Fetched from provisioner into TFTP root; on failure, installs a local copy from `contrib/`.
+
+After install: **Apply Config** in FreePBX, then configure phones and lines in **SCCP Connectivity**.
+
+---
+
 ## Firmware / provisioner
 
 The module fetches firmware and locale files from [dkgroot/provision_sccp](https://github.com/dkgroot/provision_sccp). Files live under `tftpboot/firmware/<model>/`, e.g. [7975](https://github.com/dkgroot/provision_sccp/tree/master/tftpboot/firmware/7975) has `SCCP75.9-4-2SR3-1S.loads`. If downloads give **0 KB files** (redirect/connectivity), the code now uses `raw.githubusercontent.com` and rejects 0-byte firmware. If downloads still fail:
