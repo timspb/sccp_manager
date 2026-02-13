@@ -82,6 +82,7 @@
 
 namespace FreePBX\modules;
 
+#[AllowDynamicProperties]
 class Sccp_manager extends \FreePBX_Helpers implements \BMO {
     /* Field Values for type  seq */
     private $pagedata = null;

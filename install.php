@@ -29,6 +29,11 @@ $cnf_int = \FreePBX::Config();
 
 $thisInstaller = new class{
     use \FreePBX\modules\Sccp_manager\sccpManTraits\helperFunctions;
+    
+    /** @var \SimpleXMLElement|false|null */
+    public $xml_data;
+    /** @var array SCCP configuration values */
+    public $sccpvalues = array();
 };
 
 $requiredClasses = array('aminterface', 'extconfigs');
