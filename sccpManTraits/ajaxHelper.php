@@ -595,16 +595,33 @@ trait ajaxHelper {
         $srcDir = array();
         $dstDir = array();
         $provisionerUrl = "https://github.com/dkgroot/provision_sccp/raw/master/";
-        $tftpPath = $this->sccppath['tftp_path'] ?? '';
-        $masterXml = $tftpPath . '/masterFilesStructure.xml';
+        $tftpPath = trim((string)($this->sccppath['tftp_path'] ?? ''));
+        $masterXml = $tftpPath === '' ? '' : $tftpPath . '/masterFilesStructure.xml';
+
+        if ($tftpPath === '') {
+            return array('status' => false,
+                'message' => 'TFTP path is not configured. Set it in SCCP Manager → Advanced (TFTP path).',
+                'reload' => false);
+        }
 
         // Always refresh masterFilesStructure.xml when user attempts to download (firmware/locale/country)
         $this->getFileListFromProvisioner($tftpPath);
 
         $tftpBootXml = @simplexml_load_file($masterXml);
         if ($tftpBootXml === false) {
+            $hint = array();
+            if ($tftpPath === '') {
+                $hint[] = 'TFTP path is not set in module settings.';
+            } elseif (!is_dir($tftpPath)) {
+                $hint[] = 'TFTP directory does not exist: ' . $tftpPath;
+            } elseif (!is_writable($tftpPath)) {
+                $hint[] = 'TFTP directory is not writable by the web server: ' . $tftpPath . ' (e.g. chown www-data or chmod 775).';
+            } else {
+                $hint[] = 'Server could not fetch from GitHub (https://github.com/dkgroot/provision_sccp) or write the file.';
+            }
+            $hint[] = 'Ensure the server can reach github.com and that the TFTP path exists and is writable.';
             return array('status' => false,
-                'message' => 'Could not load masterFilesStructure.xml. Check ' . $tftpPath . ' is writable by web server and connectivity to github.com.',
+                'message' => 'Could not load masterFilesStructure.xml. ' . implode(' ', $hint),
                 'reload' => false);
         }
 
@@ -680,8 +697,11 @@ trait ajaxHelper {
                 $fileUrl = $srcBase . '/' . $srcFile;
                 $destPath = $dstBase . '/' . $srcFile;
                 if (!$this->fetchUrlToFile($fileUrl, $destPath)) {
+                    $permHint = is_dir($dstBase) && !is_writable($dstBase)
+                        ? 'Directory is not writable: ' . $dstBase
+                        : 'Ensure directory exists and is writable: ' . $dstBase;
                     return array('status' => false,
-                        'message' => $fileUrl . " could not be downloaded. Check permissions (" . $dstBase . " writable), connectivity to github.com, and URL.",
+                        'message' => 'Download failed: ' . $srcFile . '. ' . $permHint . '. Check connectivity to github.com.',
                         'reload' => false);
                 }
                 $filesRetrieved++;
