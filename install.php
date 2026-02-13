@@ -465,7 +465,7 @@ function InstallDB_updateSchema($db_config)
 
                 if (!empty($tab_modif[$fld_id]['modify'])) {
                     // Check if modify type is same as current type
-                    if (strtoupper($tab_modif[$fld_id]['modify']) == strtoupper($tabl_data['Type'])) {
+                    if (strtoupper($tab_modif[$fld_id]['modify']) == strtoupper($tabl_data['Type'] ?? '')) {
                         // Type has not changed so unset
                         unset($tab_modif[$fld_id]['modify']);
                     } else {
@@ -487,7 +487,7 @@ function InstallDB_updateSchema($db_config)
 
                 if (!empty($tab_modif[$fld_id]['def_modify'])) {
                     // Check if def_modify value is same as current value
-                    if (strtoupper($tab_modif[$fld_id]['def_modify']) == strtoupper($tabl_data['Default'])) {
+                    if (strtoupper($tab_modif[$fld_id]['def_modify']) == strtoupper($tabl_data['Default'] ?? '')) {
                         // Defaults have not changed so unset
                         unset($tab_modif[$fld_id]['def_modify']);
                     } else {
@@ -514,7 +514,7 @@ function InstallDB_updateSchema($db_config)
                             unset($tab_modif[$fld_id_newName]['create']);
                         } else {
                             // add current attributes to the new name.
-                            $existingAttrs = strtoupper($tabl_data['Type']).(($tabl_data['Null'] == 'NO') ?' NOT NULL': ' NULL') .
+                            $existingAttrs = strtoupper($tabl_data['Type'] ?? '').(($tabl_data['Null'] == 'NO') ?' NOT NULL': ' NULL') .
                                             ((empty($tabl_data['Default']))?'': ' DEFAULT ' . "'" . $tabl_data['Default']."'");
                             $sql_rename .= "CHANGE COLUMN {$fld_id} {$fld_id_newName} {$existingAttrs}, ";
                         }
