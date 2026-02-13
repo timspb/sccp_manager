@@ -18,6 +18,8 @@
 | chan-sccp | 4.3.5+ |
 | PHP extension | zip |
 
+A **patched or fixed chan-sccp build** may be required for full compatibility with this module and your Asterisk/FreePBX setup; the stock distro package is not always sufficient. See [chan-sccp](https://github.com/chan-sccp/chan-sccp) releases or community builds.
+
 ```bash
 apt-get install php8.3-zip
 ```
