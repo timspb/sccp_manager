@@ -215,7 +215,7 @@ class ExtensionStateListComplete_Event extends ClosingEvent
 class SCCPShowSoftKeySetsComplete_Event extends ClosingEvent
 {
     public function listCorrectlyReceived($_message, $_eventCount){
-        // For PHP 8.2 compatibility and to fix count mismatch issues,
+        // For PHP 8.3 compatibility and to fix count mismatch issues,
         // we'll use a more flexible approach that checks multiple conditions
         $expectedItems = (int)$this->getKey('listitems');
         $actualLines = substr_count($_message, "\n") - 11;

@@ -250,7 +250,7 @@ class SCCPGeneric_Response extends Response
                 $expectedEntries = (int)($expectedEntriesRaw ?? 0);
                 $entries = $this->_tables[$tableName]['Entries'] ?? [];
                 
-                // Ensure we have an array and count properly for PHP 8.2
+                // Ensure we have an array and count properly for PHP 8.3
                 if (!is_array($entries)) {
                     $entries = [];
                 }

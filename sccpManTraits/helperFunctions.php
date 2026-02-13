@@ -346,13 +346,27 @@ trait helperFunctions {
     }
 
     /**
+     * Convert github.com raw URL to raw.githubusercontent.com to avoid redirect issues (empty 0-byte downloads).
+     * @param string $url e.g. https://github.com/dkgroot/provision_sccp/raw/master/tftpboot/firmware/7975/file.loads
+     * @return string e.g. https://raw.githubusercontent.com/dkgroot/provision_sccp/master/tftpboot/firmware/7975/file.loads
+     */
+    private function normalizeGitHubRawUrl(string $url): string {
+        if (preg_match('#^https?://github\.com/([^/]+)/([^/]+)/raw/([^/]+)/(.*)$#', $url, $m)) {
+            return 'https://raw.githubusercontent.com/' . $m[1] . '/' . $m[2] . '/' . $m[3] . '/' . $m[4];
+        }
+        return $url;
+    }
+
+    /**
      * Download a URL to a file (follows redirects, works with GitHub raw URLs).
+     * Uses raw.githubusercontent.com for GitHub URLs to avoid redirect-related 0-byte downloads.
      * Prefers cURL; falls back to file_get_contents with stream context if cURL unavailable.
      * @param string $url Full URL (e.g. https://github.com/.../raw/master/path/file.xml)
      * @param string $destPath Absolute path to save file
      * @return bool true on success, false on failure
      */
     public function fetchUrlToFile(string $url, string $destPath): bool {
+        $url = $this->normalizeGitHubRawUrl($url);
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
             if ($ch === false) {
@@ -384,6 +398,12 @@ trait helperFunctions {
                 if ($err !== '') {
                     error_log('sccp_manager fetchUrlToFile: ' . $err . ' [URL: ' . $url . ']');
                 }
+                return false;
+            }
+            // Reject 0-byte firmware/config files (redirect or LFS often yields empty file)
+            if (filesize($destPath) === 0 && preg_match('/\.(loads|sbn|bin|zup|sbin|SBN|LOADS)$/i', $destPath)) {
+                @unlink($destPath);
+                error_log('sccp_manager fetchUrlToFile: downloaded file is 0 bytes [URL: ' . $url . ']');
                 return false;
             }
             return true;

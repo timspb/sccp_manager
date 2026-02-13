@@ -51,12 +51,12 @@
 
 ### Prerequisites — требования к системе
 - **GUI:** FreePBX 16 или 17
-- **PHP:** 8.2 или новее
+- **PHP:** 8.3 или новее
 - **Asterisk:** 12.2+ (рекомендуется 21, 22, 23)
 - **chan-sccp:** 4.3.4+ (рекомендуется 4.3.5+)
-- Расширение PHP zip (например, в Debian с PHP 8.2):
+- Расширение PHP zip (например, в Debian с PHP 8.3):
 ```
-apt-get install php8.2-zip
+apt-get install php8.3-zip
 ```
 - Стандартные POSIX-утилиты (sed, awk, tr) и рабочая [chan-sccp](https://github.com/chan-sccp/chan-sccp)
 ### Installation Очень короткая инструкция

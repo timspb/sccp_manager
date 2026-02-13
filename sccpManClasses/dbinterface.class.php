@@ -259,7 +259,7 @@ class dbinterface
             $stmt->execute();
             $settingsFromDb = $stmt->fetchAll(\PDO::FETCH_ASSOC|\PDO::FETCH_UNIQUE);
             
-            // Ensure we return an array for PHP 8.2 compatibility
+            // Ensure we return an array for PHP 8.3 compatibility
             if (!is_array($settingsFromDb)) {
                 $settingsFromDb = array();
             }
@@ -479,7 +479,7 @@ class dbinterface
                     $stmt->execute();
                     $tech = $stmt->fetchAll(\PDO::FETCH_COLUMN | \PDO::FETCH_GROUP);
                     
-                    // Ensure we have an array and cast values for PHP 8.2
+                    // Ensure we have an array and cast values for PHP 8.3
                     if (is_array($tech)) {
                         foreach ($tech as &$value) {
                             $value = is_array($value) && isset($value[0]) ? (string) $value[0] : '';

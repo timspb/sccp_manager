@@ -26,7 +26,7 @@
   - server.codec.php: already used `_()` for labels/help.
 - **formcreate.class.php:** "Customise", "Use %s defaults", "Enter new %s value for %s" wrapped in `_()` / `sprintf(_(...), ...)`.
 
-## 4. PHP 8.2 log readiness
+## 4. PHP 8.3 log readiness
 
 - **Sccp_manager.class.php `__construct()`:** Initial load is wrapped in `try { ... } catch (\Throwable $e) { ... }`:
   - On exception, `$this->class_error` is set with message, file and line.
@@ -36,13 +36,13 @@
 ## 5. module.xml
 
 - **Version:** Set to **17.0.1.0**.
-- **Depends:** Unchanged; already includes `<phpversion>8.2</phpversion>` and `<version>16</version>`.
-- **Changelog:** New entry: *Version 17.0.1.0* – Production-ready: XSS escaping in views, i18n pass, Throwable logging on load, module version 17.0.1.0; depends php 8.2.
+- **Depends:** Unchanged; already includes `<phpversion>8.3</phpversion>` and `<version>16</version>`.
+- **Changelog:** New entry: *Version 17.0.1.0* – Production-ready: XSS escaping in views, i18n pass, Throwable logging on load, module version 17.0.1.0; depends php 8.3.
 
 ## 6. sccpManagerUpdater.json
 
 - **Version:** 17.0.1.0.
-- **Changelog:** Entry added for 17.0.1.0 (production-ready: XSS escaping, i18n, Throwable logging, php 8.2 depends).
+- **Changelog:** Entry added for 17.0.1.0 (production-ready: XSS escaping, i18n, Throwable logging, php 8.3 depends).
 - **location:** Tag URL updated to `v17.0.1.0.tar.gz`.
 
 ## Files changed (for deployment)

@@ -296,7 +296,7 @@ trait ajaxHelper {
                     // Process the softkey data
                     foreach ($softkeyData as $key => $value) {
                         if (is_array($vall) && !empty($vall)) {
-                            // For AMI data, use array_filter and trim as requested for PHP 8.2
+                            // For AMI data, use array_filter and trim as requested for PHP 8.3
                             if (is_string($value) && strpos($value, ',') !== false) {
                                 $array = array_filter(array_map('trim', explode(',', $value)));
                                 $result[$i][$key] = implode('<br>', $array);
@@ -306,7 +306,7 @@ trait ajaxHelper {
                         } else {
                             // For config data, handle newlines first
                             if (is_string($value) && strpos($value, "\n") !== false) {
-                                // Use array_filter and trim as requested for PHP 8.2
+                                // Use array_filter and trim as requested for PHP 8.3
                                 $array = array_filter(array_map('trim', explode("\n", $value)));
                                 $cleanValue = implode(',', $array);
                                 $result[$i][$key] = str_replace(',', '<br>', $cleanValue);
