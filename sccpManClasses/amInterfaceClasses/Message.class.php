@@ -156,8 +156,9 @@ abstract class Message
                     }
                     if (filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)) {
                         return (boolean) $value;
-                    } elseif (filter_var($value, FILTER_SANITIZE_STRING, FILTER_NULL_ON_FAILURE)) {
-                        return (string) $value;
+                    } elseif (is_string($value) && strlen(trim($value)) > 0) {
+                        // FILTER_SANITIZE_STRING is deprecated in PHP 8.1+, use manual sanitization
+                        return (string) preg_replace('/[^\x20-\x7E\x0A\x0D\x09]/', '', $value);
                     } elseif (filter_var($value, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_NULL_ON_FAILURE)) {
                         return (string) htmlspecialchars($value, ENT_QUOTES);
                     } else {
