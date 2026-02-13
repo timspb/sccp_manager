@@ -41,7 +41,7 @@ abstract class Response extends IncomingMessage
         return $this->_events;
     }
     public function getClosingEvent() {
-        return $this->_events['ClosingEvent'];
+        return $this->_events['ClosingEvent'] ?? null;
     }
     public function removeClosingEvent() {
         unset($this->_events['ClosingEvent']);
@@ -126,20 +126,20 @@ class Command_Response extends Generic_Response
         $lines = explode(Message::EOL, $rawContent);
         foreach ($lines as $line) {
             $content = explode(':', $line);
-            if (is_array($content)) {
-                switch (strtolower($content[0])) {
+            if (is_array($content) && count($content) >= 2) {
+                switch (strtolower($content[0] ?? '')) {
                     case 'actionid':
-                        $this->_temptable['ActionID'] = trim($content[1]);
+                        $this->_temptable['ActionID'] = trim($content[1] ?? '');
                         break;
                     case 'response':
-                        $this->_temptable['Response'] = trim($content[1]);
+                        $this->_temptable['Response'] = trim($content[1] ?? '');
                         break;
                     case 'privilege':
-                        $this->_temptable['Privilege'] = trim($content[1]);
+                        $this->_temptable['Privilege'] = trim($content[1] ?? '');
                         break;
                     case 'output':
                         // included for backward compatibility with earlier versions of chan_sccp_b. AMI api does not precede command output with Output
-                        $this->_temptable['Output'] = explode(PHP_EOL,str_replace(PHP_EOL.'--END COMMAND--', '',trim($content[1])));
+                        $this->_temptable['Output'] = explode(PHP_EOL,str_replace(PHP_EOL.'--END COMMAND--', '',trim($content[1] ?? '')));
                         break;
                     default:
                         $this->_temptable['Output'] = explode(PHP_EOL,str_replace(PHP_EOL.'--END COMMAND--', '', trim($line)));
@@ -166,9 +166,11 @@ class SCCPJSON_Response extends Generic_Response
     }
     public function getResult()
     {
-        if (($json = json_decode($this->getKey('JSON'), true)) != false) {
+        $jsonData = $this->getKey('JSON') ?? '';
+        if (($json = json_decode($jsonData, true)) != false) {
             return $json;
         }
+        return null;
     }
 }
 
@@ -233,7 +235,10 @@ class SCCPGeneric_Response extends Response
                 // Finished the table. Now check to see if everything was received
                 // If counts do not match return false and table will not be
                 //loaded
-                if ($event->getKey('TableEntries') != count($this->_tables[$event->getTableName()]['Entries'])) {
+                $tableName = $event->getTableName();
+                $expectedEntries = $event->getKey('TableEntries') ?? 0;
+                $actualEntries = count($this->_tables[$tableName]['Entries'] ?? []);
+                if ($expectedEntries != $actualEntries) {
                     return false;
                 }
                 break;
@@ -260,10 +265,10 @@ class SCCPGeneric_Response extends Response
             $all_key_ok = true;
             // No need to test if $_fkey is array as array required
             foreach ($_fkey as $_fid) {
-                if (empty($_row[$_fid])) {
+                if (empty($_row[$_fid] ?? '')) {
                     $all_key_ok = false;
                 } else {
-                    $set_name[$_fid] = $_row[$_fid];
+                    $set_name[$_fid] = $_row[$_fid] ?? '';
                 }
             }
             $Data = &$result;
@@ -274,7 +279,7 @@ class SCCPGeneric_Response extends Response
                 }
                 // Label converter in case labels and keys are different
                 foreach ($_fields as $value_key => $value_id) {
-                    $Data[$value_id] = $_row[$value_key];
+                    $Data[$value_id] = $_row[$value_key] ?? '';
                 }
             }
         }
@@ -291,10 +296,10 @@ class SCCPGeneric_Response extends Response
             $set_name = array();
             // No need to test if $_fkey is arrray as array required
             foreach ($_fkey as $_fid) {
-                if (empty($tmp_result[$_fid])) {
+                if (empty($tmp_result[$_fid] ?? '')) {
                     $all_key_ok = false;
                 } else {
-                    $set_name[$_fid] = $tmp_result[$_fid];
+                    $set_name[$_fid] = $tmp_result[$_fid] ?? '';
                 }
             }
             $Data = &$result;
@@ -304,7 +309,7 @@ class SCCPGeneric_Response extends Response
                 }
                 // Label converter in case labels and keys are different - not actually required.
                 foreach ($_fields as $value_id) {
-                    $Data[$value_id] = $tmp_result[$value_id];
+                    $Data[$value_id] = $tmp_result[$value_id] ?? '';
                 }
             }
         }
@@ -315,6 +320,9 @@ class SCCPGeneric_Response extends Response
     {
         $result =array();
         if (empty($tablename) || !is_array($this->_tables)) {
+            return $result;
+        }
+        if (!isset($this->_tables[$tablename]['Entries']) || !is_array($this->_tables[$tablename]['Entries'])) {
             return $result;
         }
         foreach ($this->_tables[$tablename]['Entries'] as $trow) {
