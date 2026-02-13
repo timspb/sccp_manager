@@ -69,11 +69,13 @@ if (!empty($def_val['type'])) {
     }
     if (!empty($tmp_raw['validate'])) {
         $tmpar =  explode(";", $tmp_raw['validate']);
+        $loadimage_display = $tmp_raw['loadimage'] ?? $model_for_validate . ' (not set)';
+        $nametemplate_display = $tmp_raw['nametemplate'] ?? $model_for_validate . ' (not set)';
         if ($tmpar[0] != 'yes') {
-            $device_warning['Image'] = array('Device firmware not found : '.$tmp_raw['loadimage']);
+            $device_warning['Image'] = array('Device firmware not found : ' . $loadimage_display);
         }
         if ($tmpar[1] != 'yes') {
-            $device_warning['Template'] = array('Missing device configuration template : '. $tmp_raw['nametemplate']);
+            $device_warning['Template'] = array('Missing device configuration template : ' . $nametemplate_display);
         }
         if (!empty($device_warning)) {
             ?>

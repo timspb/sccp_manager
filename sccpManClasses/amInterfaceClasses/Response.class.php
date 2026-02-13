@@ -536,8 +536,8 @@ class SCCPShowDevice_Response extends SCCPGeneric_Response
                   'maxqual'=>'maxqual', 'rconceal'=>'rconceal', 'sconceal'=>'sconceal'
                   )
         );
-        $result['SCCP_Vendor'] = array('vendor' => strtok($result['skinnyphonetype'], ' '), 'model' => strtok('('),
-                                       'model_id' => strtok(')'), 'vendor_addon' => strtok($result['configphonetype'], ' '),
+        $result['SCCP_Vendor'] = array('vendor' => strtok((string)($result['skinnyphonetype'] ?? ''), ' '), 'model' => strtok('('),
+                                       'model_id' => strtok(')'), 'vendor_addon' => strtok((string)($result['configphonetype'] ?? ''), ' '),
                                        'model_addon' => strtok(' '));
         if (empty($result['SCCP_Vendor']['vendor']) || $result['SCCP_Vendor']['vendor'] == 'Undefined') {
             $result['SCCP_Vendor'] = array('vendor' => 'Undefined', 'model' => $result['configphonetype'],

@@ -1044,8 +1044,15 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
 
     function getSccpModelInformation($get = "all", $validate = false, $format_list = "all", $filter = array()) {
         $file_ext = array('.loads', '.sbn', '.bin', '.zup', '.sbin', '.SBN', '.LOADS');
+        $tftpRoot = rtrim($this->sccppath['tftp_path'] ?? '', '/');
         $dir = $this->sccppath['tftp_firmware_path'] ?? '';
+        if ($dir === '' && $tftpRoot !== '') {
+            $dir = $tftpRoot . '/firmware';
+        }
         $templatesPath = $this->sccppath['tftp_templates_path'] ?? '';
+        if ($templatesPath === '' && $tftpRoot !== '') {
+            $templatesPath = $tftpRoot . '/templates';
+        }
 
         $search_mode = $this->sccpvalues['tftp_rewrite']['data'] ?? 'off';
         switch ($search_mode) {
@@ -1080,7 +1087,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                             if (in_array($baseName, $dir_list, true) || in_array($loadimage, $dir_list, true)) {
                                 $firmwareFound = true;
                             }
-                            if (!$firmwareFound && $dir !== '') {
+                                if (!$firmwareFound && $dir !== '') {
                                 foreach ($loadimageVariants as $tryName) {
                                     if (file_exists($dir . '/' . $tryName) || ($model !== '' && file_exists($dir . '/' . $model . '/' . $tryName))) {
                                         $firmwareFound = true;
@@ -1112,6 +1119,16 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                             }
                             break;
                     }
+                    // Fallback: check under tftp_path/firmware (e.g. /tftpboot/firmware) if configured paths missed
+                    if (!$firmwareFound && $tftpRoot !== '' && $dir !== $tftpRoot . '/firmware') {
+                        $fallbackDir = $tftpRoot . '/firmware';
+                        foreach ($loadimageVariants as $tryName) {
+                            if (file_exists($fallbackDir . '/' . $tryName) || ($model !== '' && file_exists($fallbackDir . '/' . $model . '/' . $tryName))) {
+                                $firmwareFound = true;
+                                break;
+                            }
+                        }
+                    }
                     if ($firmwareFound) {
                         $raw_settings['validate'] = 'yes;';
                     }
@@ -1121,11 +1138,12 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                 if (!empty($raw_settings['nametemplate'] ?? '')) {
                     $templateFile = $raw_settings['nametemplate'];
                     $file = ($templatesPath !== '') ? ($templatesPath . '/' . $templateFile) : '';
-                    if ($file !== '' && file_exists($file)) {
-                        $raw_settings['validate'] .= 'yes';
-                    } else {
-                        $raw_settings['validate'] .= 'no';
+                    $templateFound = ($file !== '' && file_exists($file));
+                    if (!$templateFound && $tftpRoot !== '') {
+                        $file = $tftpRoot . '/templates/' . $templateFile;
+                        $templateFound = file_exists($file);
                     }
+                    $raw_settings['validate'] .= $templateFound ? 'yes' : 'no';
                 } else {
                     $raw_settings['validate'] .= '-';
                 }
