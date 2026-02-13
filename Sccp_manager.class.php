@@ -952,6 +952,10 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         // $data_value['ntp_timezone_id'] = // SPA Cisco Device !
         $data_value['server_if_list'] = $this->getIpInformation('ip4');
         $dev_config = array_merge($dev_config, $this->sccppath);
+        $tftpRoot = rtrim($this->sccppath['tftp_path'] ?? '', '/');
+        if (($dev_config['tftp_store_path'] ?? '') === '' && $tftpRoot !== '') {
+            $dev_config['tftp_store_path'] = $tftpRoot . '/settings';
+        }
         $dev_config['tftp_firmware'] = '';
         $dev_config['addon_info'] = array();
         if (!empty($dev_config['addon'] ?? '')) {
