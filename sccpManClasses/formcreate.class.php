@@ -56,7 +56,7 @@ class formcreate
                         <i class="fa fa-question-circle fpbx-help-icon" data-for="<?php echo $res_id; ?>"></i>
                     </div>
         <?php
-                    if (!empty($sccp_defaults[$shortId]['systemdefault'])) {
+                    if (!empty($sccp_defaults[$shortId]['systemdefault'] ?? '')) {
                         // There is a system default, so add button to customise or reset
                         //-- Start include of defaults button --
                         echo "<div class=col-md-3>";
@@ -70,7 +70,7 @@ class formcreate
             //if (!empty($fvalues[$res_n])) {
             $value->value = $fvalues[$res_n]['data'];
             if (!empty($fvalues[$res_n]['data'])) {
-                if ($sccp_defaults[$res_n]['systemdefault'] != $fvalues[$res_n]['data']) {
+                if (($sccp_defaults[$res_n]['systemdefault'] ?? '') != $fvalues[$res_n]['data']) {
                     $usingSysDefaults = false;
                 }
             }
@@ -90,7 +90,7 @@ class formcreate
             echo $value->value;
             $i ++;
         }
-        if (!empty($sccp_defaults[$shortId]['systemdefault'])) {
+        if (!empty($sccp_defaults[$shortId]['systemdefault'] ?? '')) {
 
         ?>
                     </div>
@@ -104,7 +104,7 @@ class formcreate
                                 echo "class=sccp-edit :checked ";
                             } else {
                                 // reverting to chan-sccp default values
-                                echo "class=sccp-restore data-default={$sccp_defaults[$res_n]['systemdefault']} ";
+                                echo "class=sccp-restore data-default=" . ($sccp_defaults[$res_n]['systemdefault'] ?? '') . " ";
                             }
                             ?>
                         >
@@ -146,7 +146,7 @@ class formcreate
                             }
                             // Default to chan-sccp defaults, not xml defaults if reverting to defaults or empty
                             if ((empty($value->value)) || ($usingSysDefaults)) {
-                                $value->value = $sccp_defaults[$res_n]['systemdefault'];
+                                $value->value = $sccp_defaults[$res_n]['systemdefault'] ?? '';
                             }
                             if (empty($value->type)) {
                                 $value->type = 'text';
@@ -216,7 +216,7 @@ class formcreate
         }
 
         if ($res_n == 'srst_ip') {
-            $res_value = $this->convertCsvToArray($sccp_defaults[$res_n]['data']);
+            $res_value = $this->convertCsvToArray($sccp_defaults[$res_n]['data'] ?? '');
         }
         if (empty($res_value)) {
             $res_value = array((string) $child->default);
@@ -391,10 +391,10 @@ class formcreate
                             $res_v = (string)$fvalues[$res_n]['data'];
                         }
                     }
-                    if ($sccp_defaults[$res_n]['systemdefault'] != $res_v) {
+                    if (($sccp_defaults[$res_n]['systemdefault'] ?? '') != $res_v) {
                         $usingSysDefaults = false;
                     }
-                    if (!empty($sccp_defaults[$res_n]['systemdefault'])) {
+                    if (!empty($sccp_defaults[$res_n]['systemdefault'] ?? '')) {
                     // There is a system default, so add button to customise or reset
                     // the closing } is after the code to include the button at line ~438
 
@@ -414,7 +414,7 @@ class formcreate
                                 echo " class=sccp-edit :checked ";
                             } else {
                                 // reverting to chan-sccp default values
-                                echo " data-default={$sccp_defaults[$res_n]['systemdefault']} class=sccp-restore ";
+                                echo " data-default=" . ($sccp_defaults[$res_n]['systemdefault'] ?? '') . " class=sccp-restore ";
                             }
                             ?>
                         >
@@ -447,7 +447,7 @@ class formcreate
                         $opt_hide = '';
 
                         if ($usingSysDefaults) {
-                            $res_v = $sccp_defaults[$res_n]['systemdefault'];
+                            $res_v = $sccp_defaults[$res_n]['systemdefault'] ?? '';
                         }
                         if (!empty($child->option_hide)) {
                             $opt_hide = ' class="sccp_button_hide" data-vhide="'.$child->option_hide.'" data-clhide="'.$child->option_hide['class'].'" ';
