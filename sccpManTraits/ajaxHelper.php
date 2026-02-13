@@ -597,16 +597,15 @@ trait ajaxHelper {
         $provisionerUrl = "https://github.com/dkgroot/provision_sccp/raw/master/";
         $tftpPath = $this->sccppath['tftp_path'] ?? '';
         $masterXml = $tftpPath . '/masterFilesStructure.xml';
-        if (!file_exists($masterXml) || @simplexml_load_file($masterXml) === false) {
-            if (!$this->getFileListFromProvisioner($tftpPath)) {
-                return array('status' => false,
-                    'message' => $provisionerUrl . "tools/tftpbootFiles.xml cannot be fetched and bundled list unavailable. Check permissions (e.g. " . $tftpPath . " writable by web server), connectivity to github.com.",
-                    'reload' => false);
-            }
-        }
+
+        // Always refresh masterFilesStructure.xml when user attempts to download (firmware/locale/country)
+        $this->getFileListFromProvisioner($tftpPath);
+
         $tftpBootXml = @simplexml_load_file($masterXml);
         if ($tftpBootXml === false) {
-            return array('status' => false, 'message' => 'Could not load masterFilesStructure.xml', 'reload' => false);
+            return array('status' => false,
+                'message' => 'Could not load masterFilesStructure.xml. Check ' . $tftpPath . ' is writable by web server and connectivity to github.com.',
+                'reload' => false);
         }
 
         switch ($request['type']) {
