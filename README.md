@@ -69,6 +69,12 @@ The module fetches firmware and locale files from [dkgroot/provision_sccp](https
 
 ---
 
+## Database (chan_sccp realtime)
+
+chan_sccp reads devices from MySQL via **extconfig** (`sccpdevice=mysql,asterisk,sccpdeviceconfig`). The module provides a **VIEW** `sccpdeviceconfig` (data from `sccpdevice` + `sccpbuttonconfig`), not a table. If `sccpdeviceconfig` was ever created as a **table** (e.g. by an old script), chan_sccp would see 0 rows and reject with "device unknown". On install/upgrade the module now runs `DROP TABLE IF EXISTS sccpdeviceconfig` before creating the view, so the view is always correct. If you see "registration reject device unknown" but the device exists in `sccpdevice`, check that `sccpdeviceconfig` is a view: `SHOW FULL TABLES WHERE Table_type = 'VIEW';` and that `SELECT name FROM sccpdeviceconfig;` returns your devices.
+
+---
+
 ## Links
 
 - [timspb/chan-sccp](https://github.com/timspb/chan-sccp) — driver (this fork)
