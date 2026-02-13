@@ -199,7 +199,10 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
 
             foreach (($sysConfiguration['Options'] ?? []) as $key => $valueArray) {
                 foreach (($valueArray['Description'] ?? []) as $descKey => $descValue) {
-                    $this->sccpHelpInfo[$valueArray['Name'] ?? ''] .= $descValue . '<br>';
+                    $helpKey = $valueArray['Name'] ?? '';
+                    if (!empty($helpKey)) {
+                        $this->sccpHelpInfo[$helpKey] = ($this->sccpHelpInfo[$helpKey] ?? '') . $descValue . '<br>';
+                    }
                 }
             }
             unset($sysConfiguration);
@@ -444,11 +447,11 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                     case 'feature':
                         $btn_f = $get_settings["button{$it}_feature"];
                         // $btn_opt = (empty($get_settings['button' . $it . '_fvalue'])) ? '' : $get_settings['button' . $it . '_fvalue'];
-                        $btn_n = (empty($get_settings["button{$it}_flabel"])) ? $def_feature[$btn_f]['name'] : $get_settings["button{$it}_flabel"];
+                        $btn_n = (empty($get_settings["button{$it}_flabel"])) ? ($def_feature[$btn_f]['name'] ?? '') : $get_settings["button{$it}_flabel"];
                         $btn_opt = $btn_f;
-                        if (!empty($def_feature[$btn_f]['value'])) {
+                        if (!empty($def_feature[$btn_f]['value'] ?? '')) {
                             if (empty($get_settings['button' . $it . '_fvalue'])) {
-                                $btn_opt .= ',' . $def_feature[$btn_f]['value'];
+                                $btn_opt .= ',' . ($def_feature[$btn_f]['value'] ?? '');
                             } else {
                                 $btn_opt .= ',' . $get_settings['button' . $it . '_fvalue'];
                             }
@@ -538,7 +541,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         $save_buttons = $this->getPhoneButtons($get_settings, $name_dev, 'sccpline');
 
         foreach ($db_field as $data) {
-            $key = (string) $data['Field'];
+            $key = (string) ($data['Field'] ?? '');
             $value = "";
             switch ($key) {
                 case 'name':
@@ -707,7 +710,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
     private function initializeTFtpLanguagePath() {
         //$dir = $this->sccppath["tftp_lang_path"];
         foreach ($this->extconfigs->getExtConfig('sccp_lang') as $langKey => $langValueArr) {
-            $localeDir = $this->sccppath["tftp_lang_path"] . DIRECTORY_SEPARATOR . $langValueArr['locale'];
+            $localeDir = $this->sccppath["tftp_lang_path"] . DIRECTORY_SEPARATOR . ($langValueArr['locale'] ?? '');
             if (!is_dir($localeDir)) {
                 if (!mkdir($localeDir, 0755, true)) {
                     die("Error creating $localeDir directory");
@@ -818,11 +821,11 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         $copy_fld = array('ref', 'reftype', 'instance', 'buttontype', 'options');
         $extList = $extList = $this->dbinterface->get_db_SccpTableByID("SccpExtension", array(), 'name');
         foreach ($button_list as $value) {
-            $btn_opt = explode(',', $value['options']);
-            $btn_id = $btn_opt[0];
+            $btn_opt = explode(',', $value['options'] ?? '');
+            $btn_id = $btn_opt[0] ?? '';
             if (!empty($extList[$btn_id])) {
-                if ($extList[$btn_id]['label'] != $value['name']) {
-                    $btn_data['name'] = $extList[$btn_id]['label'];
+                if (($extList[$btn_id]['label'] ?? '') != ($value['name'] ?? '')) {
+                    $btn_data['name'] = $extList[$btn_id]['label'] ?? '';
                     foreach ($copy_fld as $ckey) {
                         $btn_data[$ckey] = $value[$ckey];
                     }
@@ -858,7 +861,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
     function createDefaultSccpXml() {
         $data_value = array();
         foreach ($this->sccpvalues as $key => $value) {
-            $data_value[$key] = $value['data'];
+            $data_value[$key] = $value['data'] ?? '';
         }
         $data_value['server_if_list'] = $this->getIpInformation('ip4');
         $model_information = $this->getSccpModelInformation($get = "enabled", $validate = false); // Get Active
@@ -896,15 +899,15 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                     return false;
                 }
                 $data_value = array_merge($data_value, $dev_ext_config);
-                $data_tmp = explode(';', $dev_ext_config['sip_lines']);
+                $data_tmp = explode(';', $dev_ext_config['sip_lines'] ?? '');
                 $data_value['sbind'] = array();
                 foreach ($data_tmp as $value) {
                     $tmp_line = explode(',', $value);
                     switch ($tmp_line[0]) {
                         case 'line':
                             $dev_line_data = $this->dbinterface->getSipTableData('DeviceById', $tmp_line[1]);
-                            $f_linetype = ($dev_line_data['sipdriver'] == 'chan_sip') ? 'sip' : 'pjsip';
-                            $dev_line_data['sbind'] = $tmp_bind[$f_linetype];
+                            $f_linetype = (($dev_line_data['sipdriver'] ?? '') == 'chan_sip') ? 'sip' : 'pjsip';
+                            $dev_line_data['sbind'] = $tmp_bind[$f_linetype] ?? array();
                             if ((!$this->array_key_exists_recursive('udp', $tmp_bind[$f_linetype])) && (!$this->array_key_exists_recursive('tcp', $tmp_bind[$f_linetype]))) {
                                 die_freepbx(_("SIP server configuration error ! Neither UDP nor TCP protocol enabled"));
                                 return false;
@@ -913,7 +916,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                                 $data_value['siplines'][] = $dev_line_data;
                             }
                             if ($tmp_line[2] == 'default') {
-                                $data_value['sbind'] = $tmp_bind[$f_linetype];
+                                $data_value['sbind'] = $tmp_bind[$f_linetype] ?? array();
                             }
                             break;
                         case 'speeddial':
@@ -927,7 +930,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
             }
         }
         foreach ($this->sccpvalues as $key => $value) {
-            $data_value[$key] = $value['data'];
+            $data_value[$key] = $value['data'] ?? '';
         }
         //Get Cisco Code only Old Device
         $data_value['ntp_timezone_id'] = $this->extconfigs->getExtConfig('sccp_timezone', $data_value['ntp_timezone']); // Old Cisco Device
@@ -941,7 +944,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
             $hw_addon = explode(',', $dev_config['addon']);
             foreach ($hw_addon as $key) {
                 $hw_data = $this->getSccpModelInformation('byid', false, "all", array('model' => $key));
-                $dev_config['addon_info'][$key] = $hw_data[0]['loadimage'];
+                $dev_config['addon_info'][$key] = $hw_data[0]['loadimage'] ?? '';
             }
         }
 

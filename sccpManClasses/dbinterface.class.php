@@ -70,23 +70,33 @@ class dbinterface
                               ON sccpline.name = TRIM(TRAILING '!silent' FROM sccpbuttonconfig.name) ORDER BY sccpline.name");
                 break;
             case 'SccpExtension':
-                if (empty($data['name'])) {
+                if (empty($data['name'] ?? '')) {
                     $stmtU = $this->db->prepare('SELECT name, sccpline.* FROM sccpline ORDER BY name');
                 } else {
                     $stmts = $this->db->prepare('SELECT * FROM sccpline WHERE name = :name');
-                    $stmts->bindParam(':name', $data['name'],\PDO::PARAM_STR);
+                    $stmts->bindParam(':name', $data['name'] ?? '',\PDO::PARAM_STR);
                 }
                 break;
             case 'phoneGrid':
-                switch ($data['type']) {
+                // Check if sccpdeviceconfig view exists, otherwise use sccpdevice table
+                $tableToUse = 'sccpdeviceconfig';
+                try {
+                    $checkStmt = $this->db->prepare("SELECT 1 FROM sccpdeviceconfig LIMIT 1");
+                    $checkStmt->execute();
+                } catch (\PDOException $e) {
+                    // View doesn't exist or has issues, use base table
+                    $tableToUse = 'sccpdevice';
+                }
+                
+                switch (($data['type'] ?? '')) {
                     case "cisco-sip":
-                        $stmts = $this->db->prepare("SELECT name, type, button, addon, description, 'not connected' AS status, '- -' AS address, 'N' AS new_hw
-                            FROM sccpdeviceconfig WHERE type LIKE '%-sip' ORDER BY name");
+                        $stmts = $this->db->prepare("SELECT name, type, '' as button, addon, description, 'not connected' AS status, '- -' AS address, 'N' AS new_hw
+                            FROM {$tableToUse} WHERE type LIKE '%-sip' ORDER BY name");
                         break;
                     case "sccp":      // Fall through to default intentionally
                     default:
-                        $stmts = $this->db->prepare("SELECT name, type, button, addon, description, 'not connected' AS status, '- -' AS address, 'N' AS new_hw
-                            FROM sccpdeviceconfig WHERE type not LIKE '%-sip' ORDER BY name");
+                        $stmts = $this->db->prepare("SELECT name, type, '' as button, addon, description, 'not connected' AS status, '- -' AS address, 'N' AS new_hw
+                            FROM {$tableToUse} WHERE type not LIKE '%-sip' ORDER BY name");
                         break;
                 }
                 break;
@@ -107,20 +117,49 @@ class dbinterface
                     }
                 }
                 if (!empty($data['name'])) {      //either filter by name or by type
-                    $stmt = $this->db->prepare('SELECT ' . $fld . ' FROM sccpdeviceconfig WHERE name = :name  ORDER BY name');
-                    $stmt->bindParam(':name', $data['name'],\PDO::PARAM_STR);
-                } elseif (!empty($data['type'])) {
-                    switch ($data['type']) {
+                    // Check if sccpdeviceconfig view exists
+                    $tableToUse = 'sccpdeviceconfig';
+                    try {
+                        $checkStmt = $this->db->prepare("SELECT 1 FROM sccpdeviceconfig LIMIT 1");
+                        $checkStmt->execute();
+                    } catch (\PDOException $e) {
+                        $tableToUse = 'sccpdevice';
+                        $fld = str_replace('button', "'' as button", $fld);
+                    }
+                    $stmt = $this->db->prepare('SELECT ' . $fld . ' FROM ' . $tableToUse . ' WHERE name = :name  ORDER BY name');
+                    $stmt->bindParam(':name', $data['name'] ?? '',\PDO::PARAM_STR);
+                } elseif (!empty($data['type'] ?? '')) {
+                    // Check if sccpdeviceconfig view exists
+                    $tableToUse = 'sccpdeviceconfig';
+                    try {
+                        $checkStmt = $this->db->prepare("SELECT 1 FROM sccpdeviceconfig LIMIT 1");
+                        $checkStmt->execute();
+                    } catch (\PDOException $e) {
+                        $tableToUse = 'sccpdevice';
+                        // Adjust field list for base table
+                        $fld = str_replace('button', "'' as button", $fld);
+                    }
+                    
+                    switch ($data['type'] ?? '') {
                         case "cisco-sip":
-                            $stmts = $this->db->prepare("SELECT {$fld} FROM sccpdeviceconfig WHERE type LIKE '%-sip' ORDER BY name");
+                            $stmts = $this->db->prepare("SELECT {$fld} FROM {$tableToUse} WHERE type LIKE '%-sip' ORDER BY name");
                             break;
                         case "cisco":      // Fall through to default intentionally
                         default:
-                            $stmts = $this->db->prepare("SELECT {$fld} FROM sccpdeviceconfig WHERE type not LIKE '%-sip' ORDER BY name");
+                            $stmts = $this->db->prepare("SELECT {$fld} FROM {$tableToUse} WHERE type not LIKE '%-sip' ORDER BY name");
                             break;
                     }
                 } else {      //no filter and no name provided - return all
-                    $stmts = $this->db->prepare("SELECT  {$fld}  FROM sccpdeviceconfig ORDER BY name");
+                    // Check if sccpdeviceconfig view exists
+                    $tableToUse = 'sccpdeviceconfig';
+                    try {
+                        $checkStmt = $this->db->prepare("SELECT 1 FROM sccpdeviceconfig LIMIT 1");
+                        $checkStmt->execute();
+                    } catch (\PDOException $e) {
+                        $tableToUse = 'sccpdevice';
+                        $fld = str_replace('button', "'' as button", $fld);
+                    }
+                    $stmts = $this->db->prepare("SELECT  {$fld}  FROM {$tableToUse} ORDER BY name");
                 }
                 break;
             case 'get_columns_sccpdevice':
@@ -137,18 +176,19 @@ class dbinterface
                         addon.buttons as addon_buttons FROM sccpdevice AS t1
                         LEFT JOIN sccpdevmodel as types ON t1.type=types.model
                         LEFT JOIN sccpdevmodel as addon ON t1.addon=addon.model WHERE name = :name');
-                $stmt->bindParam(':name', $data['id'],\PDO::PARAM_STR);
+                $stmt->bindParam(':name', $data['id'] ?? '',\PDO::PARAM_STR);
                 break;
             case 'get_sccpuser':
                 $stmt = $this->db->prepare('SELECT * FROM sccpuser WHERE name = :name');
-                $stmt->bindParam(':name', $data['id'],\PDO::PARAM_STR);
+                $stmt->bindParam(':name', $data['id'] ?? '',\PDO::PARAM_STR);
                 break;
             case 'getAssignedExtensions':
                 // all extensions that are designed as default lines
                 $stmtU = $this->db->prepare("SELECT DISTINCT name, name FROM sccpbuttonconfig WHERE buttontype = 'line' AND instance =1");
                 break;
             case 'getDefaultLine':
-                $stmt = $this->db->prepare("SELECT name FROM sccpbuttonconfig WHERE ref = '{$data['id']}' and instance =1 and buttontype = 'line'");
+                $stmt = $this->db->prepare("SELECT name FROM sccpbuttonconfig WHERE ref = :ref and instance =1 and buttontype = 'line'");
+                $stmt->bindParam(':ref', $data['id'] ?? '', \PDO::PARAM_STR);
                 break;
             case 'get_sccpdevice_buttons':
                 $sql = '';
@@ -162,11 +202,11 @@ class dbinterface
                     $stmts = $this->db->prepare("SELECT * FROM sccpbuttonconfig WHERE {$sql} ORDER BY instance");
                     // Now bind labels - only bind label if it exists or bind will create exception.
                     // can only bind once have prepared, so need to test again.
-                    if (!empty($data['buttontype'])) {
-                        $stmts->bindParam(':buttontype', $data['buttontype'],\PDO::PARAM_STR);
+                    if (!empty($data['buttontype'] ?? '')) {
+                        $stmts->bindParam(':buttontype', $data['buttontype'] ?? '',\PDO::PARAM_STR);
                     }
-                    if (!empty($data['id'])) {
-                        $stmts->bindParam(':ref', $data['id'],\PDO::PARAM_STR);
+                    if (!empty($data['id'] ?? '')) {
+                        $stmts->bindParam(':ref', $data['id'] ?? '',\PDO::PARAM_STR);
                     }
                 } else {
                     $raw_settings = array();
