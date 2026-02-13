@@ -170,11 +170,25 @@ if (empty($firmwareDir)) {
     $firmwareDir = ($tftpBootXml !== false) ? $tftpBootXml->xpath("//Directory[@name='firmware']") : array();
 }
 
+$firmwareOptionsByModel = array();
 if (!empty($firmwareDir)) {
     foreach ($firmwareDir[0] as $child) {
-        // Only Directory elements with name (skip DirectoryPath and avoid parent "firmware")
-        if ($child->getName() === 'Directory' && !empty((string)$child['name']) && (string)$child['name'] !== 'firmware') {
-            $selectArray[(string)$child['name']] = (string)$child['name'];
+        if ($child->getName() !== 'Directory' || empty((string)$child['name']) || (string)$child['name'] === 'firmware') {
+            continue;
+        }
+        $modelName = (string)$child['name'];
+        $selectArray[$modelName] = $modelName;
+        // Build list of Load Image options (e.g. .loads base names) for this model
+        $loads = array();
+        foreach ($child->FileName as $fn) {
+            $name = (string)$fn;
+            if (preg_match('/\.(loads|LOADS)$/', $name)) {
+                $base = pathinfo($name, PATHINFO_FILENAME);
+                $loads[$base] = $base;
+            }
+        }
+        if (!empty($loads)) {
+            $firmwareOptionsByModel[$modelName] = array_values($loads);
         }
     }
 }
@@ -239,7 +253,7 @@ include($amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/views/getFileModa
                         <label class="control-label" for="editd_loadimage"><?php echo _('Load Image');?></label>
                         <i class="fa fa-question-circle fpbx-help-icon" data-for="editd_loadimage"></i>
                     </div><div class="col-md-9">
-                        <input type="text" class="form-control" id="editd_loadimage" name="editd_loadimage" value="">
+                        <select class="form-control" id="editd_loadimage" name="editd_loadimage"><option value="">—</option></select>
                     </div> </div></div>
                     <div class="row"><div class="col-md-12">
                         <span id="editd_loadimage-help" class="help-block fpbx-help-block">Help.</span>
@@ -276,6 +290,7 @@ include($amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/views/getFileModa
 
 
 <script>
+    var firmwareByModel = <?php echo json_encode($firmwareOptionsByModel); ?>;
     function StatusIconFormatter(value, row) {
         return (value === '1') ? '<i class="fa fa-check-square-o" style="color:green" title="<?php echo _("Device is enabled")?>"></i>' : '<i class="fa fa-square-o" title="<?php echo _("Device is disabled")?>"></i>';
     }
@@ -329,7 +344,17 @@ include($amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/views/getFileModa
             alert(drow);
         } else {
             document.getElementById("editd_model").value = clr;
-            document.getElementById("editd_loadimage").value = drow['loadimage'];
+            var loadSel = document.getElementById("editd_loadimage");
+            loadSel.innerHTML = '<option value="">—</option>';
+            var opts = firmwareByModel[clr];
+            var cur = (drow['loadimage'] || '').toString();
+            if (opts && opts.length) {
+                opts.forEach(function(v) { var o = document.createElement('option'); o.value = v; o.textContent = v; loadSel.appendChild(o); });
+            }
+            if (cur && !(opts && opts.indexOf(cur) >= 0)) {
+                var o = document.createElement('option'); o.value = cur; o.textContent = cur; loadSel.appendChild(o);
+            }
+            loadSel.value = cur;
             document.getElementById("editd_nametemplate").value = drow['nametemplate'];
             document.getElementById("editd_loadinformationid").value = drow['loadinformationid'];
             document.getElementById("editd_dns").value = drow['dns'];
