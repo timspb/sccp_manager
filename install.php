@@ -1250,7 +1250,7 @@ function cleanUpSccpSettings() {
             }
         }
         // Test for case
-        if (in_array("'" . strtolower($settingsFromDb[$key]['data']) . "'", $valArr, true)) {
+        if (in_array("'" . strtolower($settingsFromDb[$key]['data'] ?? '') . "'", $valArr, true)) {
             $settingsFromDb[$key]['data'] = strtolower($settingsFromDb[$key]['data']);
             continue;
         }
