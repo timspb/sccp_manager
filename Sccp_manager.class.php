@@ -439,6 +439,13 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         // $lines_list = $this->dbinterface->getSccpDeviceTableData('SccpExtension');
         $max_btn = (!empty($get_settings['buttonscount'] ?? 0) ? ($get_settings['buttonscount'] ?? 60) : 60);
 
+        // If Default Line is set but first button is not, use Default Line as first line button so grid shows it
+        $defaultLine = $get_settings['sccp_hw_defaultLine'] ?? '';
+        if ($defaultLine !== '' && ($get_settings['button0_type'] ?? '') === '') {
+            $get_settings['button0_type'] = 'line';
+            $get_settings['button0_line'] = $defaultLine;
+        }
+
         for ($it = 0; $it < $max_btn; $it++) {
             if (!empty($get_settings["button{$it}_type"] ?? '')) {
                 $btn_t = $get_settings["button{$it}_type"] ?? '';

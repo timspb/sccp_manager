@@ -354,6 +354,26 @@ trait ajaxHelper {
                 if ($request['type'] == 'cisco-sip') {
                     return $dbDevices;     //this may be empty
                 }
+
+                // When view returns empty button (e.g. profileid=1 but user has no buttons), show device's own buttons so Line column is correct
+                foreach ($dbDevices as &$dev_id) {
+                    if (trim((string)($dev_id['button'] ?? '')) === '') {
+                        $btns = $this->dbinterface->getSccpDeviceTableData('get_sccpdevice_buttons', array('id' => $dev_id['name']));
+                        if (!empty($btns) && is_array($btns)) {
+                            $parts = array();
+                            foreach ($btns as $b) {
+                                $parts[] = implode(',', array(
+                                    $b['buttontype'] ?? '',
+                                    $b['name'] ?? '',
+                                    $b['options'] ?? ''
+                                ));
+                            }
+                            $dev_id['button'] = implode(';', $parts);
+                        }
+                    }
+                }
+                unset($dev_id);
+
                 // Find all devices currently connected
                 $activeDevices = $this->aminterface->sccp_get_active_device();
 

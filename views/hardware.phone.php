@@ -83,18 +83,18 @@
         return  exp_model;
     }
     function LineFormatter(value, row, index) {
-        if (value === null)  {
-            return  '-- EMPTY --';
+        if (value === null || value === '') {
+            return '<span class="text-muted">— ' + _('No line') + ' —</span>';
         }
         var data = value.split(";");
-        result = '';
+        var result = '';
         for (var i = 0; i < data.length; i++) {
             var val = data[i].split(',');
-            if (val[0] === 'line') {
-              result = result + val[1] + '<br>';
+            if (val[0] === 'line' && val[1]) {
+                result = result + val[1] + '<br>';
             }
         }
-        return  result;
+        return result !== '' ? result : '<span class="text-muted">— ' + _('No line') + ' —</span>';
     }
 
 </script>
