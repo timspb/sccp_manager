@@ -737,9 +737,11 @@ $(document).ready(function () {
                 success: function (data) {
 
                     $('#pleaseWaitDialog').modal('hide');
-                    console.log(data);
-                    data = JSON.parse(data.replace(/^(.*\{)/,"\{"));
-                    console.log(data);
+                    if (typeof data === 'string') {
+                        data = JSON.parse(data.replace(/^(.*\{)/,"\{"));
+                    } else if (typeof data !== 'object' || data === null) {
+                        data = { status: false, message: 'Invalid response' };
+                    }
                     if (data.status === true) {
                         if (data.table_reload === true) {
                             $('table').bootstrapTable('refresh');
