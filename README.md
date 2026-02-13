@@ -1,136 +1,85 @@
-## Welcome to Chan_SCCP GUI Manager for FreePBX
+# SCCP Manager for FreePBX
 
-| [English](README.md) | [Russian](README.ru.md) | [Upstream (chan-sccp)](https://github.com/chan-sccp/sccp_manager)
+| [English](README.md) | [Russian](README.ru.md) | [Upstream (chan-sccp)](https://github.com/chan-sccp/sccp_manager) |
 
-![Demo](https://github.com/chan-sccp/sccp_manager/raw/develop/.dok/image/Demo_1s5.gif)
+FreePBX module for managing Asterisk–Cisco infrastructure: provisioning and administration of Cisco IP phones and extensions (SCCP) with [chan-sccp](https://github.com/chan-sccp/chan-sccp).
 
-  * [Installation](#installation)
-  * [Prerequisites](#prerequisites)
-  * [Links](#link)
-  * [Wiki](https://github.com/chan-sccp/chan-sccp/wiki)
+**This fork:** [timspb/sccp_manager](https://github.com/timspb/sccp_manager) ← [chan-sccp/sccp_manager](https://github.com/chan-sccp/sccp_manager).
 
-**This repo is a fork:** [timspb/sccp_manager](https://github.com/timspb/sccp_manager) ← [chan-sccp/sccp_manager](https://github.com/chan-sccp/sccp_manager).  
-Install links below point to **upstream** by default; you can use this fork's URLs if you need builds from here.
+## Requirements
 
-## Link
+- **FreePBX** 16 or 17  
+- **PHP** 8.2+  
+- **Asterisk** 21 / 22 / 23  
+- **chan-sccp** 4.3.5+  
+- PHP extension **zip**
 
-[![Download Sccp-Manager](https://img.shields.io/badge/SccpGUI-build-ff69b4.svg)](https://github.com/chan-sccp/sccp_manager/archive/refs/heads/develop.zip)
-[![Chan-SCCP channel driver for Asterisk](https://img.shields.io/sourceforge/dt/chan-sccp-b.svg)](https://github.com/chan-sccp/chan-sccp/releases/latest)
-[![Chan-SCCP Documentation](https://img.shields.io/badge/docs-wiki-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki)
-
-This FreePBX module helps manage Asterisk–Cisco infrastructure: provisioning and administration of Cisco IP phones and extensions in a way similar to Cisco CallManager.
-
-**Compatibility (develop branch):** FreePBX 16/17, Asterisk 21/22/23, PHP 8.2+, chan-sccp 4.3.5+.
-
-The idea of creating a module is borrowed from [Cynjut/SCCP_Manager](https://github.com/Cynjut/SCCP_Manager), and was further developed by [PhantomVl](https://github.com/PhantomVl/sccp_manager) and [chan-sccp/sccp_manager](https://github.com/chan-sccp/sccp_manager). sccp_manager relies heavily on [chan-sccp](https://github.com/chan-sccp/chan-sccp).
-
-SCCP Manager is free software. Please see the file COPYING for details.
-
-This module will suit you if you are planning to migrate from CallManager to Asterisk (or have already done it). SCCP-Manager allows you to administer SCCP extensions and a wide range of Cisco phone types (including IP Communicator). You can control phone buttons (depending on the phone model) assigning multiple lines, speeddials and BLF's. You can use the driver functions "sccp_chain" from the GUI module.
-
-### Wiki
-More information and documentation: [SCCP Manager / chan-sccp Wiki](https://github.com/chan-sccp/chan-sccp/wiki).
-
-## Prerequisites
-
-Make sure you have the following installed on your system:
-
-- **GUI:** FreePBX 16 or 17
-- **PHP:** 8.2 or later (required by module dependencies)
-- A working version of [chan-sccp](https://github.com/chan-sccp/chan-sccp)
-- **PHP zip extension** (e.g. on Debian with PHP 8.2):
 ```bash
 apt-get install php8.2-zip
 ```
 
-### Requirements
-
-- **chan-sccp** 4.3.4 or later (4.3.5+ recommended): [Building and Installation](https://github.com/chan-sccp/chan-sccp/wiki/Building-and-Installation-Guide)
-  - sccp_manager expects these configure flags:
-    ```bash
-    ./configure --enable-conference --enable-advanced-functions --enable-distributed-devicestate --enable-video
-    ```
-- **TFTP** server (recommended under `/tftpboot/`): [Setup TFTP](https://github.com/chan-sccp/chan-sccp/wiki/setup-tftp-service)
-  - Phone settings templates, e.g. from chan-sccp:
-    ```bash
-    cp /usr/src/chan-sccp/conf/tftp/*.xml* /tftpboot/templates/
-    ```
-- **DHCP** server: [Setup DHCP](https://github.com/chan-sccp/chan-sccp/wiki/setup-dhcp-service)
-
-### Setup
-
-- [Setting up FreePBX](http://wiki.freepbx.org/display/FOP/Install+FreePBX)
-- [Setting up Chan-Sccp](https://github.com/chan-sccp/chan-sccp/wiki/How-to-setup-the-chan_sccp-Module)
-- The sccp_manager module will automatically setup and configure the Asterisk realtime database for chan-sccp. See [Realtime Configuration](https://github.com/chan-sccp/chan-sccp/wiki/Realtime-Configuration).
+- **TFTP** (e.g. `/tftpboot`), **DHCP**. See [chan-sccp wiki](https://github.com/chan-sccp/chan-sccp/wiki).
 
 ## Installation
 
-### How to install sccp_manager
+1. FreePBX → **Admin** → **Module Admin** → **Upload Modules**.
+2. In **Download From Web** use one of:
 
-1. Log in to FreePBX.
-2. Go to **Admin → Module Admin**.
-3. Click **Upload Modules**.
-4. Enter one of the following URLs:
-
-**Develop (recommended for FreePBX 16/17, PHP 8.2+)**
-
-Compatible with FreePBX 16/17, Asterisk 21/22/23, and PHP 8.2+.
-
-_This is development software and may have issues._
-
-```
-https://github.com/chan-sccp/sccp_manager/archive/refs/heads/develop.zip
-```
-
-**Stable (upstream tagged release)**
-
-```
-https://github.com/chan-sccp/sccp_manager/archive/refs/tags/v14.6.0.0.tar.gz
-```
-
-**Or from this fork (timspb/sccp_manager)** — develop or tag v17.0.1.0:
+**This fork (develop):**
 
 ```
 https://github.com/timspb/sccp_manager/archive/refs/heads/develop.zip
 ```
 
-5. Click **Download From Web**.
-6. Click **Manage Local Modules**.
-7. Find **SCCP Manager**, check **Install**, click **Process**.
-8. Confirm installation, close Status window.
-9. **Apply Config** in FreePBX.
-10. Continue to [Using SCCP_Manager to Manage chan-sccp](https://github.com/chan-sccp/chan-sccp/wiki/Using-SCCP_Manager-to-Manage-chan-sccp).
+**Upstream develop:**
 
-### Module update
+```
+https://github.com/chan-sccp/sccp_manager/archive/refs/heads/develop.zip
+```
 
-From the command line:
+3. **Download From Web** → **Manage Local Modules** → select **SCCP Manager** → **Install** → **Process**.
+4. **Apply Config** in FreePBX.
+
+Or clone and symlink (for development):
+
+```bash
+cd /var/www/html/admin/modules
+git clone https://github.com/timspb/sccp_manager.git
+# or: git clone https://github.com/chan-sccp/sccp_manager.git
+fwconsole ma install sccp_manager
+```
+
+## Update
 
 ```bash
 fwconsole ma upgrade sccp_manager
 ```
 
-Or use **Admin → Module Admin** in the FreePBX GUI when an update is available.
+## Firmware / provisioner
 
-### IMPORTANT NOTES
+The module can fetch firmware and locale files from [dkgroot/provision_sccp](https://github.com/dkgroot/provision_sccp). If downloads fail:
 
-- This system assumes you are using the **Asterisk realtime database**. If not, set it up first: [Realtime Configuration](https://github.com/chan-sccp/chan-sccp/wiki/Realtime-Configuration).
-- For Cisco phones to work correctly, provision them with firmware **v8.1 or higher**.
-- You can use Cisco language profiles to switch the phones to your locale.
+- **Permissions:** TFTP root (e.g. `/tftpboot`) and `admin/modules/sccp_manager/firmware` must be writable by the web server user (e.g. `asterisk`):
 
-### Firmware download from GitHub (Provision_Sccp)
+  ```bash
+  sudo chown -R asterisk:asterisk /tftpboot
+  ```
 
-The module fetches firmware/locale files from [dkgroot/provision_sccp](https://github.com/dkgroot/provision_sccp). If downloads fail:
+- **Connectivity:** Server must reach `https://github.com` (e.g. `curl -I https://github.com`).
 
-1. **Permissions** — The TFTP root (e.g. `/tftpboot`) and, if used, `admin/modules/sccp_manager/firmware` must be writable by the web server user (often `asterisk` or `www-data`):
-   ```bash
-   sudo chown -R asterisk:asterisk /tftpboot
-   ```
-2. **Connectivity** — The server must reach `github.com` over HTTPS (e.g. `curl -I https://github.com`). If you use a proxy, configure PHP/cURL or environment variables (`HTTP_PROXY`/`HTTPS_PROXY`) as needed.
-3. **Diagnostics** — Run the provided check script (as root or the web server user):
-   ```bash
-   bash /var/www/html/admin/modules/sccp_manager/contrib/check_provisioner_env.sh /tftpboot
-   ```
+- **Check script:**
 
-### Chat
+  ```bash
+  bash /var/www/html/admin/modules/sccp_manager/contrib/check_provisioner_env.sh /tftpboot
+  ```
 
-[![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/sccp_manager/community)
+## Links
+
+- [Chan-SCCP](https://github.com/chan-sccp/chan-sccp) — SCCP channel driver for Asterisk  
+- [chan-sccp Wiki](https://github.com/chan-sccp/chan-sccp/wiki)  
+- [Realtime Configuration](https://github.com/chan-sccp/chan-sccp/wiki/Realtime-Configuration)  
+- [Gitter](https://gitter.im/sccp_manager/community)
+
+## License
+
+GPL. See [COPYING](COPYING).
