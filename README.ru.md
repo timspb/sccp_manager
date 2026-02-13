@@ -11,7 +11,7 @@
 ## Link
 
 [![Sccp Manager](https://img.shields.io/badge/SccpGUI-build-ff69b4.svg)](https://github.com/timspb/sccp_manager)
-[![Download Chan-SCCP channel driver for Asterisk](https://img.shields.io/sourceforge/dt/chan-sccp-b.svg)](https://github.com/chan-sccp/chan-sccp/releases/latest)
+[![Рабочий драйвер chan-sccp](https://img.shields.io/badge/chan--sccp-driver-green.svg)](https://github.com/timspb/chan-sccp)
 [![Chan-SCCP Documentation](https://img.shields.io/badge/docs-wiki-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki)
 
 ### История
@@ -33,7 +33,7 @@
  1. У меня не получилось поставить добиться работы с дисками Aserisk и FreePBX - собираем из исходников 
  1.1. Замечательная копания freepbx. Теперь с SNG7-PBX-64bit-... все работает!
  2. Mysql (Maria)
- 3. Драйвер протокола SCCP страница (https://github.com/chan-sccp/chan-sccp/)
+ 3. Драйвер протокола SCCP: **рабочая сборка** — [timspb/chan-sccp](https://github.com/timspb/chan-sccp), upstream — [chan-sccp/chan-sccp](https://github.com/chan-sccp/chan-sccp/)
  4. Этот модуль.
  5. Руки
  6. Возможно еще несколько проектов

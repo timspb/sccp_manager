@@ -4,14 +4,15 @@
 
 FreePBX module for managing Asterisk–Cisco infrastructure: provisioning and administration of Cisco IP phones and extensions (SCCP) with [chan-sccp](https://github.com/chan-sccp/chan-sccp).
 
-**This fork:** [timspb/sccp_manager](https://github.com/timspb/sccp_manager) ← [chan-sccp/sccp_manager](https://github.com/chan-sccp/sccp_manager).
+**This fork:** [timspb/sccp_manager](https://github.com/timspb/sccp_manager) ← [chan-sccp/sccp_manager](https://github.com/chan-sccp/sccp_manager).  
+**Working driver (chan-sccp):** [timspb/chan-sccp](https://github.com/timspb/chan-sccp) ← [chan-sccp/chan-sccp](https://github.com/chan-sccp/chan-sccp).
 
 ## Requirements
 
 - **FreePBX** 16 or 17  
 - **PHP** 8.2+  
 - **Asterisk** 21 / 22 / 23  
-- **chan-sccp** 4.3.5+  
+- **chan-sccp** 4.3.5+ — recommended: [timspb/chan-sccp](https://github.com/timspb/chan-sccp) (working driver) or [chan-sccp/chan-sccp](https://github.com/chan-sccp/chan-sccp)  
 - PHP extension **zip**
 
 ```bash
@@ -75,7 +76,8 @@ The module can fetch firmware and locale files from [dkgroot/provision_sccp](htt
 
 ## Links
 
-- [Chan-SCCP](https://github.com/chan-sccp/chan-sccp) — SCCP channel driver for Asterisk  
+- [timspb/chan-sccp](https://github.com/timspb/chan-sccp) — working SCCP channel driver (this fork)  
+- [chan-sccp/chan-sccp](https://github.com/chan-sccp/chan-sccp) — upstream driver  
 - [chan-sccp Wiki](https://github.com/chan-sccp/chan-sccp/wiki)  
 - [Realtime Configuration](https://github.com/chan-sccp/chan-sccp/wiki/Realtime-Configuration)  
 - [Gitter](https://gitter.im/sccp_manager/community)
