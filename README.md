@@ -2,10 +2,9 @@
 
 > FreePBX module for managing Cisco IP phones and SCCP extensions with Asterisk and [chan-sccp](https://github.com/chan-sccp/chan-sccp). Provisioning, buttons, BLF, multiple lines.
 
-[![English](https://img.shields.io/badge/README-English-blue)](README.md) [![Русский](https://img.shields.io/badge/README-Русский-green)](README.ru.md) [![Upstream](https://img.shields.io/badge/upstream-chan--sccp%2Fsccp__manager-lightgrey)](https://github.com/chan-sccp/sccp_manager)
+[![English](https://img.shields.io/badge/README-English-blue)](README.md) [![Русский](https://img.shields.io/badge/README-Русский-green)](README.ru.md)
 
-**Repo:** [timspb/sccp_manager](https://github.com/timspb/sccp_manager) ← [chan-sccp/sccp_manager](https://github.com/chan-sccp/sccp_manager)  
-**Driver (working build):** [timspb/chan-sccp](https://github.com/timspb/chan-sccp)
+**Repo:** [chan-sccp/sccp_manager](https://github.com/chan-sccp/sccp_manager)
 
 ---
 
@@ -33,7 +32,7 @@ apt-get install php8.3-zip
 2. In **Download From Web** paste:
 
 ```
-https://github.com/timspb/sccp_manager/archive/refs/heads/develop.zip
+https://github.com/chan-sccp/sccp_manager/archive/refs/heads/develop.zip
 ```
 
 3. **Download From Web** → **Manage Local Modules** → **SCCP Manager** → **Install** → **Process**.
@@ -43,7 +42,7 @@ From shell (for development):
 
 ```bash
 cd /var/www/html/admin/modules
-git clone https://github.com/timspb/sccp_manager.git
+git clone https://github.com/chan-sccp/sccp_manager.git
 fwconsole ma install sccp_manager
 ```
 
@@ -93,8 +92,7 @@ chan_sccp reads devices from MySQL via **extconfig** (`sccpdevice=mysql,asterisk
 
 ## Links
 
-- [timspb/chan-sccp](https://github.com/timspb/chan-sccp) — driver (this fork)
-- [chan-sccp/chan-sccp](https://github.com/chan-sccp/chan-sccp) — upstream
+- [chan-sccp/chan-sccp](https://github.com/chan-sccp/chan-sccp) — driver
 - [Wiki](https://github.com/chan-sccp/chan-sccp/wiki) · [Realtime](https://github.com/chan-sccp/chan-sccp/wiki/Realtime-Configuration) · [Gitter](https://gitter.im/sccp_manager/community)
 
 **License:** GPL. See [COPYING](COPYING).
