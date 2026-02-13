@@ -197,9 +197,9 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         if (empty($this->sccpHelpInfo)) {
             $sysConfiguration = $this->aminterface->getSCCPConfigMetaData('general');
 
-            foreach ($sysConfiguration['Options'] as $key => $valueArray) {
-                foreach ($valueArray['Description'] as $descKey => $descValue) {
-                    $this->sccpHelpInfo[$valueArray['Name']] .= $descValue . '<br>';
+            foreach (($sysConfiguration['Options'] ?? []) as $key => $valueArray) {
+                foreach (($valueArray['Description'] ?? []) as $descKey => $descValue) {
+                    $this->sccpHelpInfo[$valueArray['Name'] ?? ''] .= $descValue . '<br>';
                 }
             }
             unset($sysConfiguration);
@@ -234,7 +234,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         $this->sccpvalues['ntp_timezone'] = array('keyword' => 'ntp_timezone', 'seq'=>95, 'type' => 2, 'data' => $freepbxTZ);
         $TZdata = $this->extconfigs->getExtConfig('sccp_timezone', $freepbxTZ);
         if (!empty($TZdata)) {
-            $value = $TZdata['offset']/60;   // TODO: Is this correct (storing in hours not minutes)
+            $value = ($TZdata['offset'] ?? 0)/60;   // TODO: Is this correct (storing in hours not minutes)
             $this->sccpvalues['tzoffset'] = array('keyword' => 'tzoffset', 'seq'=>98, 'type' => 2, 'data' => $value);
         }
     }
@@ -465,7 +465,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                         $btn_opt = (string) $get_settings["button{$it}_line"];
                         $db_res = $this->dbinterface->getSccpDeviceTableData('SccpExtension', array('name' => $btn_opt));
                         $btn_n = (is_array($db_res) && isset($db_res[0]['label'])) ? $db_res[0]['label'] : $btn_opt;
-                        $btn_opt .= ',' . $btn_opt . $this->hint_context['default'];
+                        $btn_opt .= ',' . $btn_opt . ($this->hint_context['default'] ?? '@ext-local');
                         break;
                     case 'speeddial':
                         if (!empty($get_settings["button{$it}_input"])) {
@@ -607,7 +607,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         $val = $this->sccpvalues['allow']['data'] ?? '';
         if (empty($val)) {
             // No site defaults so return chan-sccp defaults
-            $val = $this->sccpvalues['allow']['systemdefault'];
+            $val = $this->sccpvalues['allow']['systemdefault'] ?? '';
         }
         $siteCodecs = array_fill_keys(explode(';',$val), 1);
         switch ($type) {
@@ -738,7 +738,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
 
         $hint = $this->aminterface->core_list_hints();
         foreach ($hint as $key => $value) {
-            if ($this->hint_context['default'] != $value) {
+            if (($this->hint_context['default'] ?? '@ext-local') != $value) {
                 $this->hint_context[$key] = $value;
             }
         }
