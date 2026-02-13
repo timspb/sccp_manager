@@ -19,6 +19,15 @@
 //
 namespace FreePBX\modules\Core\Drivers;
 class Sccp extends \FreePBX\modules\Core\Driver {
+    /** @var \SimpleXMLElement|false */
+    public $xml_data;
+    /** @var array<string, string> */
+    public $sccpHelpInfo = [];
+    /** @var \FreePBX\modules\Core\BMO|null */
+    protected $freepbx;
+    /** @var \DB */
+    protected $database;
+
     // This is a map between sccpline fields and FreePBX fields.
     // TODO: List needs to be extended. Missing fields, not necessarily all required              
 /*              adhocNumber
@@ -88,10 +97,10 @@ class Sccp extends \FreePBX\modules\Core\Driver {
         // This will produce an array where site defaults take precedence over system defaults
         $this->line_defaults = array_intersect_key($siteDefaults,$sccpDefaults);
         // If have no site codecs, use system defaults - must have a codec!
-        if (empty($this->line_defaults['allow'])) {
+        if (empty($this->line_defaults['allow'] ?? null)) {
             $this->line_defaults['allow'] = $sccpDefaults['allow'];
         }
-        if (empty($this->line_defaults['disallow'])) {
+        if (empty($this->line_defaults['disallow'] ?? null)) {
             $this->line_defaults['disallow'] = $sccpDefaults['disallow'];
         }
         unset($raw_settings, $siteDefaults, $sccpDefaults);
@@ -133,7 +142,7 @@ class Sccp extends \FreePBX\modules\Core\Driver {
         $settings['allow']['value'] = implode(";", $allow_codec);
         // Reset to line defaults if no value selected
         if (empty($settings['allow']['value'])) {
-              $settings['allow']['value'] = $this->line_defaults['allow'];
+              $settings['allow']['value'] = $this->line_defaults['allow'] ?? '';
         }
 
 	      // If set, parse outboundcid content into cid_num and cid_name sccpline fields
@@ -147,7 +156,7 @@ class Sccp extends \FreePBX\modules\Core\Driver {
             }
         }
 
-        if ($this->line_defaults['dndFeature'] == 'off') {
+        if (($this->line_defaults['dndFeature'] ?? '') == 'off') {
             $settings['dnd']['value'] = 'off';
         }
 
@@ -222,7 +231,7 @@ class Sccp extends \FreePBX\modules\Core\Driver {
                             'namedpickupgroup', 'adhocNumber', 'secondary_dialtone_digits', 'secondary_dialtone_tone', 'directed_pickup', 'pickup_modeanswer',
                             'transfer', 'echocancel', 'dnd', 'silencesuppression', 'musicclass', 'pin', 'allow', 'disallow');
         foreach ($settingsFields as $key) {
-            $settings[$key] = array('value' => $this->line_defaults[$key], 'flag' => $flag++);
+            $settings[$key] = array('value' => $this->line_defaults[$key] ?? '', 'flag' => $flag++);
         }
       	return array('dial' => 'SCCP', 'settings' => $settings);
     }
@@ -236,12 +245,15 @@ class Sccp extends \FreePBX\modules\Core\Driver {
         // load metainfo from chan-sccp - help information if not in xml. Only load first time as static data.
         if (empty($this->sccpHelpInfo)) {
             $sysConfiguration = \FreePbx::sccp_manager()->aminterface->getSCCPConfigMetaData('general');
-            foreach ($sysConfiguration['Options'] as $key => $valueArray) {
-                foreach ($valueArray['Description'] as $descKey => $descValue) {
-                    $this->sccpHelpInfo[$valueArray['Name']] .= $descValue . '<br>';
+            $options = $sysConfiguration['Options'] ?? [];
+            foreach ($options as $key => $valueArray) {
+                $name = $valueArray['Name'] ?? '';
+                $descriptions = $valueArray['Description'] ?? [];
+                foreach ($descriptions as $descKey => $descValue) {
+                    $this->sccpHelpInfo[$name] = ($this->sccpHelpInfo[$name] ?? '') . $descValue . '<br>';
                 }
             }
-            unset($sysConfiguration);
+            unset($sysConfiguration, $options);
         }
 
     		$section = _("SCCP Extension Details");
@@ -251,33 +263,35 @@ class Sccp extends \FreePBX\modules\Core\Driver {
         $currentComponent->addTabTranslation('sccp',_('SCCP'));
 
         // get site and system defaults
-        $systemCodecs = array_fill_keys(explode(';',$this->line_defaults['allow']),true);
+        $systemCodecs = array_fill_keys(explode(';', $this->line_defaults['allow'] ?? ''), true);
         $siteAudioCodecs = array_intersect_key($systemCodecs, $this->freepbx->Codecs->getAudio());
         $siteVideoCodecs = array_intersect_key($systemCodecs, $this->freepbx->Codecs->getVideo());
 
-        if (empty($deviceInfo['allow'])) {
+        if (empty($deviceInfo['allow'] ?? null)) {
             // No allowed codecs so reset to site defaults
             foreach ($systemCodecs as $lineCodec => $dummyVal) {
                 $activeCodecs[] = "devinfo_codec_{$lineCodec}";
             }
         } else {
             // have allowed codecs for this line
-            foreach (explode(';',$deviceInfo['allow']) as $lineCodec) {
+            foreach (explode(';', (string)($deviceInfo['allow'] ?? '')) as $lineCodec) {
                 $activeCodecs[] = "devinfo_codec_{$lineCodec}";
             }
         }
 
         // Fill Audio codecs information
+        $audioCodecButtons = array();
         foreach ($siteAudioCodecs as $key => $value) {
             $audioCodecButtons[] = array('value' => "devinfo_codec_{$key}", 'text' => $key);
         }
         // Fill Video codecs information
+        $videoCodecButtons = array();
         foreach ($siteVideoCodecs as $key => $value) {
             $videoCodecButtons[] = array('value' => "devinfo_codec_{$key}", 'text' => $key);
         }
 
         $tmparr['disallow'] = array('prompttext' => _('Disallowed Codecs'),
-                                'value' => $this->line_defaults['disallow'],
+                                'value' => $this->line_defaults['disallow'] ?? '',
                                 'tt' => 'Codecs that are disallowed. Default and recommended value is all',
                                 'level' => 1,
                                 'section' => $section_с,
@@ -308,8 +322,8 @@ class Sccp extends \FreePBX\modules\Core\Driver {
         );
         $currentComponent->addguielem($section_с, new \gui_checkset(array_merge($this->guiDefaults['gui_checkset'],$el)), $gn_category);
 
-        $pageGroup = $this->xml_data->xpath('//page_group[@name="sccp_extension_config"]');
-        $elements = $pageGroup[0]->children();
+        $pageGroup = (is_object($this->xml_data) && method_exists($this->xml_data, 'xpath')) ? $this->xml_data->xpath('//page_group[@name="sccp_extension_config"]') : [];
+        $elements = (!empty($pageGroup) && is_object($pageGroup[0])) ? $pageGroup[0]->children() : [];
 
         foreach ($elements as $child) {
             if (empty($child->help)) {
@@ -319,13 +333,13 @@ class Sccp extends \FreePBX\modules\Core\Driver {
             switch ($child['type']) {
                 case 'IE':
                     $elementID = (string)$child->input[0]->name;
-                    if (!empty($metainfo[$elementID])) {
-                        if ($child->meta_help == '1' || $child->help == 'Help!') {
-                            $child->help = $metainfo[$shortId];
+                    if (!empty($this->sccpHelpInfo[$elementID] ?? null)) {
+                        if (($child->meta_help == '1' || $child->help == 'Help!')) {
+                            $child->help = $this->sccpHelpInfo[$elementID] ?? (string)$child->help;
                         }
                     }
                     $tmparr[$elementID] = array('prompttext' => _((string)$child->label),
-                                            'value' => $this->line_defaults[$elementID],
+                                            'value' => $this->line_defaults[$elementID] ?? '',
                                             'tt' => (string)$child->help,
                                             'level' => 1,
                                             'section' => $section,
@@ -335,14 +349,14 @@ class Sccp extends \FreePBX\modules\Core\Driver {
                 case 'IS':
                     $select = array();
                     foreach ($child->xpath('button') as $value) {
-                        $select[] = array('value' => strtolower((string)$value[@value]), 'text' => (string)$value);
+                        $select[] = array('value' => strtolower((string)$value['value']), 'text' => (string)$value);
                     }
                     $hideButton = false;
-                    if (($this->line_defaults['dndFeature'] == 'off') && ($child['id'] == 5)) {
+                    if ((($this->line_defaults['dndFeature'] ?? '') == 'off') && ($child['id'] == 5)) {
                         $hideButton = true;
                     }
                     $tmparr[(string)$child->name] = array('prompttext' => _((string)$child->label),
-                                            'value' => $this->line_defaults[(string)$child->name],
+                                            'value' => $this->line_defaults[(string)$child->name] ?? '',
                                             'tt' => (string)$child->help,
                                             'select' => $select,
                                             'level' => 1,
@@ -402,7 +416,7 @@ class Sccp extends \FreePBX\modules\Core\Driver {
 
 
                     $tmparr[(string)$child->name] = array('prompttext' => _((string)$child->label),
-                                                'value' => $this->line_defaults[(string)$child->name],
+                                                'value' => $this->line_defaults[(string)$child->name] ?? '',
                                                 'tt' => (string)$child->help,
                                                 'select' => $select,
                                                 'level' => 1,
@@ -413,6 +427,7 @@ class Sccp extends \FreePBX\modules\Core\Driver {
                     unset($select);
                     break;
                 case 'SLG':
+                    $select = array();
                     $elementID = (string)$child->name;
                     $named_group = \FreePbx::sccp_manager()->dbinterface->getNamedGroup($elementID);
                     if (!empty($named_group[$elementID])) {
@@ -422,7 +437,7 @@ class Sccp extends \FreePBX\modules\Core\Driver {
                     }
                     // Disable and hide list elements if there are no valid values
                     $tmparr[(string)$child->name] = array('prompttext' => _((string)$child->label),
-                                                'value' => $this->line_defaults[(string)$child->name],
+                                                'value' => $this->line_defaults[(string)$child->name] ?? '',
                                                 'tt' => (string)$child->help,
                                                 'select' => $select,
                                                 'level' => 1,
@@ -434,6 +449,7 @@ class Sccp extends \FreePBX\modules\Core\Driver {
                     unset($select);
                     break;
                 case 'SLM':
+                    $select = array();
                     if (function_exists('music_list')){
                         foreach (music_list() as $value) {
                             $select[] = array('value' => $value, 'text' => _($value));
@@ -442,7 +458,7 @@ class Sccp extends \FreePBX\modules\Core\Driver {
                         $select[] = array('value' => 'default', 'text' => _('default'));
                     }
                     $tmparr[(string)$child->name] = array('prompttext' => _((string)$child->label),
-                                              'value' => $this->line_defaults[(string)$child->name],
+                                              'value' => $this->line_defaults[(string)$child->name] ?? '',
                                               'tt' => (string)$child->help,
                                               'select' => $select,
                                               'level' => 1,
@@ -455,6 +471,7 @@ class Sccp extends \FreePBX\modules\Core\Driver {
             }
         }
 
+        $select = array();
         $select[] = array('value' => 'off', 'text' => 'Off');
         $select[] = array('value' => 'user', 'text' => 'User');
         $select[] = array('value' => 'auto', 'text' => 'Auto');

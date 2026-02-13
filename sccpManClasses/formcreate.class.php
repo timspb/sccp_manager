@@ -8,7 +8,24 @@ class formcreate
 
     /** Escape for HTML attribute/text (XSS prevention). */
     private static function h($s) {
-        return htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        return htmlspecialchars(self::safeStr($s), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    /** Convert any value to string (avoids "Array to string conversion" for arrays/SimpleXML). */
+    private static function safeStr($v) {
+        if ($v === null || $v === '') {
+            return '';
+        }
+        if (is_array($v)) {
+            return implode(' ', $v);
+        }
+        if (is_object($v)) {
+            if (method_exists($v, '__toString')) {
+                return (string)$v;
+            }
+            return implode('', (array)$v);
+        }
+        return (string)$v;
     }
 
     /** @var string */
@@ -29,21 +46,25 @@ class formcreate
             $this->buttonHelpLabel = 'device';
         }
         $usingSysDefaults = true;
+        // Normalise SimpleXML to string to avoid "Array to string conversion"
+        $child->help = self::safeStr($child->help ?? '');
+        $child->meta_help = self::safeStr($child->meta_help ?? '');
+        $child->class = self::safeStr($child->class ?? '');
+        $child->nameseparator = self::safeStr($child->nameseparator ?? '');
         // if there are multiple inputs, take the first for res_id and shortId
-        $shortId = (string)$child->input[0]->name;
-        $res_id = $npref.$shortId;
-        if (!empty($metainfo[$shortId])) {
-            if ($child->meta_help == '1' || $child->help == 'Help!') {
-                $child->help = $metainfo[$shortId];
+        $shortId = self::safeStr($child->input[0]->name ?? '');
+        $res_id = $npref . $shortId;
+        if (!empty($metainfo[$shortId] ?? null)) {
+            $helpStr = self::safeStr($child->help);
+            if (self::safeStr($child->meta_help) === '1' || $helpStr === 'Help!') {
+                $h = $metainfo[$shortId] ?? $helpStr;
+                $child->help = self::safeStr($h);
             }
         }
 
         // --- Add Hidden option
-        $res_sec_class ='';
-        if (!empty($child ->class)) {
-            $res_sec_class = (string)$child ->class;
-        }
-        if (empty($child->nameseparator)) {
+        $res_sec_class = $child->class !== '' ? $child->class : '';
+        if (trim($child->nameseparator) === '') {
             $child->nameseparator = ' / ';
         }
 
@@ -65,30 +86,29 @@ class formcreate
         // Can have multiple inputs for a field which are displayed with a separator
         $i = 0;
         foreach ($child->xpath('input') as $value) {
-            $res_n =  (string)$value->name;
+            $res_n = self::safeStr($value->name ?? '');
             $res_name = $npref . $res_n;
-            //if (!empty($fvalues[$res_n])) {
-            $value->value = $fvalues[$res_n]['data'];
-            if (!empty($fvalues[$res_n]['data'])) {
-                if (($sccp_defaults[$res_n]['systemdefault'] ?? '') != $fvalues[$res_n]['data']) {
+            $fval = $fvalues[$res_n] ?? array();
+            $raw = $fval['data'] ?? '';
+            $fval_data = self::safeStr($raw);
+            $value->value = $fval_data;
+            if ($fval_data !== '') {
+                if (self::safeStr($sccp_defaults[$res_n]['systemdefault'] ?? '') !== $fval_data) {
                     $usingSysDefaults = false;
                 }
             }
-            if (empty($value->type)) {
-                $value->type = 'text';
-            }
-            if (empty($value->class)) {
-                $value->class = 'form-control';
-            }
+            $value->type = self::safeStr($value->type ?? '') ?: 'text';
+            $value->class = self::safeStr($value->class ?? '') ?: 'form-control';
             if ($i > 0) {
-                echo $child->nameseparator;
+                echo self::safeStr($child->nameseparator);
             }
             // Output current value
-            if (empty($value->value)) {
-                echo "{$res_n} has not been set";
+            if ($fval_data === '') {
+                echo self::h($res_n) . " has not been set";
+            } else {
+                echo self::h($fval_data);
             }
-            echo $value->value;
-            $i ++;
+            $i++;
         }
         if (!empty($sccp_defaults[$shortId]['systemdefault'] ?? '')) {
 
@@ -141,8 +161,8 @@ class formcreate
                             if (empty($res_id)) {
                                 $res_id = $res_name;
                             }
-                            if (!empty($fvalues[$res_n]['data'])) {
-                                $value->value = $fvalues[$res_n]['data'];
+                            if (!empty(($fvalues[$res_n] ?? [])['data'] ?? null)) {
+                                $value->value = ($fvalues[$res_n] ?? [])['data'] ?? '';
                             }
                             // Default to chan-sccp defaults, not xml defaults if reverting to defaults or empty
                             if ((empty($value->value)) || ($usingSysDefaults)) {
@@ -186,16 +206,18 @@ class formcreate
     }
 
     function addElementIED($child, $fvalues, $sccp_defaults,$npref, $napref) {
-        //$Sccp_manager = \FreePBX::create()->Sccp_manager;
-        // IED fields are arrays of networks and masks, or ip and ports.
+        $child->help = self::safeStr($child->help ?? '');
+        $child->meta_help = self::safeStr($child->meta_help ?? '');
         $res_input = '';
         $res_value = '';
         $opt_at = array();
-        $res_n =  (string)$child->name;
+        $res_n = self::safeStr($child->name ?? '');
 
-        if (!empty($metainfo[$res_n])) {
-            if ($child->meta_help == '1' || $child->help == 'Help!') {
-                $child->help = $metaInfo[$res_n];
+        if (!empty($metainfo[$res_n] ?? null)) {
+            $helpStr = self::safeStr($child->help);
+            if (self::safeStr($child->meta_help) === '1' || $helpStr === 'Help!') {
+                $h = $metainfo[$res_n] ?? $helpStr;
+                $child->help = self::safeStr($h);
             }
         }
     //        $res_value
@@ -209,14 +231,13 @@ class formcreate
 
         // fvalues are current settings - the encoding depends on where the data is
         // coming from: IED fields in sccpsettings are json, elsewhere they are ; delimited.
-        if (!empty($fvalues[$res_n])) {
-            if (!empty($fvalues[$res_n]['data'])) {
-                $res_value = $this->convertCsvToArray($fvalues[$res_n]['data']);
-            }
+        $fval = $fvalues[$res_n] ?? array();
+        if (!empty($fval['data'] ?? null)) {
+            $res_value = $this->convertCsvToArray($fval['data']);
         }
 
         if ($res_n == 'srst_ip') {
-            $res_value = $this->convertCsvToArray($sccp_defaults[$res_n]['data'] ?? '');
+            $res_value = $this->convertCsvToArray(($sccp_defaults[$res_n] ?? [])['data'] ?? '');
         }
         if (empty($res_value)) {
             $res_value = array((string) $child->default);
@@ -250,7 +271,7 @@ class formcreate
                                         // Remove the value from $res_value so that do not add empty row for internal
                                         array_shift($res_value);
                                         // If now have an empty array, add a new empty element
-                                        if (count($res_value) == 0) {
+                                        if (!is_array($res_value) || count($res_value) == 0) {
                                             // although handle also ip, internal is never set for those arrays
                                             $res_value[0] = array('net'=>"", 'mask' =>"");
                                         }
@@ -259,18 +280,18 @@ class formcreate
                                     $opt_class="button-checkbox";
                                     if (!empty($value->option_hide)) {
                                         $opt_class .= " sccp_button_hide";
-                                        $opt_hide = ' data-vhide="'.$value->option_hide.'" data-btn="checkbox" data-clhide="'.$value->option_hide['class'].'" ';
+                                        $opt_hide = ' data-vhide="'.$value->option_hide.'" data-btn="checkbox" data-clhide="'.(string)($value->option_hide['class'] ?? '').'" ';
                                     }
                                     if (!empty($child->option_show)) {
                                         if (empty($opt_hide)) {
                                             $opt_hide =' class="sccp_button_hide" ';
                                         }
-                                        $opt_hide .= ' data-vshow="'.$child->option_show.'" data-clshow="'.$child->option_show['class'].'" ';
+                                        $opt_hide .= ' data-vshow="'.$child->option_show.'" data-clshow="'.(string)($child->option_show['class'] ?? '').'" ';
                                     }
 
                                     if (!empty($value->option_disabled)) {
                                         $opt_class .= " sccp_button_disabled";
-                                        $opt_hide = ' data-vhide="'.$value->option_disabled.'" data-btn="checkbox" data-clhide="'.$value->option_disabled['class'].'" ';
+                                        $opt_hide = ' data-vhide="'.$value->option_disabled.'" data-btn="checkbox" data-clhide="'.(string)($value->option_disabled['class'] ?? '').'" ';
                                     }
 
                                     if (!empty($value->class)) {
@@ -285,7 +306,7 @@ class formcreate
                             }
                             $opt_class = "col-sm-7 ".$res_id."-gr";
                             if (!empty($child->class)) {
-                                $opt_class .= " ".(string)$child->class;
+                                $opt_class .= " ".self::safeStr($child->class);
                             }
                             echo '<div class = "'.$opt_class.'">';
                             $i=1;
@@ -326,11 +347,11 @@ class formcreate
                                 }
 
                                 if (!empty($child->add_pluss)) {
-                                    if ($i <= count($res_value)) {
+                                    if (is_array($res_value) && $i <= count($res_value)) {
                                         echo '<button type="button" class="btn btn-danger btn-lg input-js-remove" id="'.$res_id.$i.'-btn-del" data-id="'.$res_id.$i.'"><i class="fa fa-minus pull-right"></i></button>';
                                     }
                                     // only add plus button to the last row
-                                    if ($i == count($res_value)) {
+                                    if (is_array($res_value) && $i == count($res_value)) {
                                         echo '<button type="button" class="btn btn-primary btn-lg input-js-add" id="'.$res_id.$i.'-btn-add" data-id="'.$res_id.'" data-row="'.$i.'" data-for="'.$res_id.'" data-max="'.$max_row.'"data-json="'.bin2hex(json_encode($opt_at)).'"><i class="fa fa-plus pull-right"></i></button>';
                                     }
                                 }
@@ -359,17 +380,21 @@ class formcreate
     }
 
     function addElementIS($child, $fvalues, $sccp_defaults,$npref, $disabledButtons) {
+        $child->help = self::safeStr($child->help ?? '');
+        $child->meta_help = self::safeStr($child->meta_help ?? '');
       if ($npref == 'sccp_hw_') {
           $this->buttonDefLabel = 'site';
           $this->buttonHelpLabel = 'device';
       }
-        $res_n =  (string)$child->name;
+        $res_n = self::safeStr($child->name ?? '');
         $res_id = $npref.$res_n;
         $res_ext = str_replace($npref,'',$res_n);
         $usingSysDefaults = true;
-        if (!empty($metainfo[$res_n])) {
-            if ($child->meta_help == '1' || $child->help == 'Help!') {
-                $child->help = $metaInfo[$res_n];
+        if (!empty($metainfo[$res_n] ?? null)) {
+            $helpStr = self::safeStr($child->help);
+            if (self::safeStr($child->meta_help) === '1' || $helpStr === 'Help!') {
+                $h = $metainfo[$res_n] ?? $helpStr;
+                $child->help = self::safeStr($h);
             }
         }
 
@@ -397,9 +422,10 @@ class formcreate
                     if (!empty($child->value)) {
                          $res_v = (string)$child->value;
                     }
-                    if (!empty($fvalues[$res_n])) {
-                        if (($fvalues[$res_n]['data'] != '') ) {
-                            $res_v = (string)$fvalues[$res_n]['data'];
+                    $fval = $fvalues[$res_n] ?? array();
+                    if (!empty($fval['data'] ?? null)) {
+                        if (($fval['data'] ?? '') != '') {
+                            $res_v = (string)$fval['data'];
                         }
                     }
                     if (($sccp_defaults[$res_n]['systemdefault'] ?? '') != $res_v) {
@@ -467,7 +493,7 @@ class formcreate
                             if (empty($opt_hide)) {
                                 $opt_hide =' class="sccp_button_hide" ';
                             }
-                            $opt_hide .= ' data-vshow="'.$child->option_show.'" data-clshow="'.$child->option_show['class'].'" ';
+                            $opt_hide .= ' data-vshow="'.$child->option_show.'" data-clshow="'.(string)($child->option_show['class'] ?? '').'" ';
                         }
                         foreach ($child->xpath('button') as $value) {
                             $opt_disabled = '';
@@ -502,16 +528,20 @@ class formcreate
     }
 
     function addElementSL($child, $fvalues, $sccp_defaults,$npref, $installedLangs) {
-    //       Input element Select SLS - System Language
-        $res_n =  (string)$child ->name;
+        $child->help = self::safeStr($child->help ?? '');
+        $child->meta_help = self::safeStr($child->meta_help ?? '');
+        $res_n = self::safeStr($child->name ?? '');
         $res_id = $npref.$res_n;
         $child->value ='';
         // $select_opt is an associative array for these types.
-        if (!empty($metainfo[$res_n])) {
-            if ($child->meta_help == '1' || $child->help == 'Help!') {
-                $child->help = $metaInfo[$res_n];
+        if (!empty($metainfo[$res_n] ?? null)) {
+            $helpStr = self::safeStr($child->help);
+            if (self::safeStr($child->meta_help) === '1' || $helpStr === 'Help!') {
+                $h = $metainfo[$res_n] ?? $helpStr;
+                $child->help = self::safeStr($h);
             }
         }
+        $child->class = self::safeStr($child->class ?? '') ?: 'form-control';
         switch ($child['type']) {
             case 'SLS':
                 $syslangs = array();
@@ -545,18 +575,17 @@ class formcreate
                 break;
             case 'SLA':
             $select_opt = array();
-                if (!empty($fvalues[$res_n])) {
-                    if (!empty($fvalues[$res_n]['data'])) {
-                        $res_value = explode(';', $fvalues[$res_n]['data']);
-                    }
-                    if (empty($res_value)) {
-                        $res_value = array((string) $child->default);
-                    }
-                    foreach ($res_value as $key) {
-                        $select_opt[$key]= $key;
-                    }
+                $fval = $fvalues[$res_n] ?? array();
+                if (!empty($fval['data'] ?? null)) {
+                    $res_value = explode(';', $fval['data']);
                 }
-
+                if (empty($res_value)) {
+                    $res_value = array((string) $child->default);
+                }
+                foreach ($res_value as $key) {
+                    $select_opt[$key]= $key;
+                }
+                break;
             case 'SLM':
                 if (function_exists('music_list')) {
                     $moh_list = music_list();
@@ -588,13 +617,9 @@ class formcreate
                 $select_opt = array();
                 break;
         }
-        if (empty($child->class)) {
-            $child->class = 'form-control';
-        }
-        if (!empty($fvalues[$res_n])) {
-            if (!empty($fvalues[$res_n]['data'])) {
-                $child->value = $fvalues[$res_n]['data'];
-            }
+        $fval = $fvalues[$res_n] ?? array();
+        if (!empty($fval['data'] ?? null)) {
+            $child->value = self::safeStr($fval['data'] ?? '');
         }
         if (empty($child->value)) {
             if (!empty($child->default)) {
@@ -616,18 +641,20 @@ class formcreate
                             foreach ($select_opt as $key => $val) {
                                 if (is_array($val)) {
                                     $opt_key = $val['id'] ?? $key;
-                                    $opt_val = $val['val'] ?? $val;
+                                    $opt_val = $val['val'] ?? $key;
+                                    // Avoid using array as label (e.g. SLK softkeyset: show keyset name, not full key list)
+                                    if (is_array($opt_val)) {
+                                        $opt_val = $opt_key;
+                                    }
                                 } else if (\FreePBX::Sccp_manager()->is_assoc($select_opt)){
-                                    // have associative array
                                     $opt_key = $key;
                                     $opt_val = $val;
                                 } else {
-                                    // Have simple array
                                     $opt_key = $val;
                                     $opt_val = $val;
                                 }
                                 echo '<option value="' . self::h($opt_key) . '"';
-                                if ($opt_key == $child->value) {
+                                if ((string)$opt_key === (string)$child->value) {
                                     echo ' selected="selected"';
                                 }
                                 echo '>' . self::h($opt_val) . '</option>';
@@ -648,19 +675,23 @@ class formcreate
     }
 
     function addElementSLNA($child, $fvalues, $sccp_defaults,$npref, $installedLangs) {
-    //       Input element Select SLS - System Language with add from external
+        $child->help = self::safeStr($child->help ?? '');
+        $child->meta_help = self::safeStr($child->meta_help ?? '');
         global $amp_conf;
-        $res_n =  (string)$child ->name;
+        $res_n = self::safeStr($child->name ?? '');
         $res_id = $npref.$res_n;
         $child->value ='';
         $selectArray = array();
         // $select_opt is an associative array for these types.
-        if (!empty($metainfo[$res_n])) {
-            if ($child->meta_help == '1' || $child->help == 'Help!') {
-                $child->help = $metaInfo[$res_n];
+        if (!empty($metainfo[$res_n] ?? null)) {
+            $helpStr = self::safeStr($child->help);
+            if (self::safeStr($child->meta_help) === '1' || $helpStr === 'Help!') {
+                $h = $metainfo[$res_n] ?? $helpStr;
+                $child->help = self::safeStr($h);
             }
         }
 
+        $child->class = self::safeStr($child->class ?? '') ?: 'form-control';
         switch ($child['type']) {
             case 'SLDA':
                 $select_opt = array('xx' => 'No language packs found');
@@ -681,14 +712,9 @@ class formcreate
               break;
         }
 
-
-        if (empty($child->class)) {
-            $child->class = 'form-control';
-        }
-        if (!empty($fvalues[$res_n])) {
-            if (!empty($fvalues[$res_n]['data'])) {
-                $child->value = $fvalues[$res_n]['data'];
-            }
+        $fval = $fvalues[$res_n] ?? array();
+        if (!empty($fval['data'] ?? null)) {
+            $child->value = self::safeStr($fval['data'] ?? '');
         }
         if (empty($child->value)) {
             if (!empty($child->default)) {
@@ -701,7 +727,7 @@ class formcreate
             <div class="row">
                 <div class="form-group">
                     <?php
-                    include($amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/views/getFileModal.html');
+                    include(($amp_conf['AMPWEBROOT'] ?? '') . '/admin/modules/sccp_manager/views/getFileModal.html');
                     ?>
 
                     <div class="col-md-3">
@@ -743,23 +769,21 @@ class formcreate
     }
 
     function addElementSD($child, $fvalues, $sccp_defaults,$npref) {
-      /*
-      *    Input element Select SDM  - Model List
-      *                         SDMS - Sip model List
-      *                         SDE  - Extension List
-      */
-        $res_n =  (string)$child ->name;
+        $child->help = self::safeStr($child->help ?? '');
+        $child->meta_help = self::safeStr($child->meta_help ?? '');
+        /* Input element Select SDM - Model List; SDMS - Sip model List; SDE - Extension List */
+        $res_n = self::safeStr($child->name ?? '');
         $res_id = $npref.$res_n;
+        $child->class = self::safeStr($child->class ?? '') ?: 'form-control';
 
-        if (!empty($metainfo[$res_n])) {
-            if ($child->meta_help == '1' || $child->help == 'Help!') {
-                $child->help = $metaInfo[$res_n];
+        if (!empty($metainfo[$res_n] ?? null)) {
+            $helpStr = self::safeStr($child->help);
+            if (self::safeStr($child->meta_help) === '1' || $helpStr === 'Help!') {
+                $h = $metainfo[$res_n] ?? $helpStr;
+                $child->help = self::safeStr($h);
             }
         }
 
-        if (empty($child->class)) {
-            $child->class = 'form-control';
-        }
         switch ($child['type']) {
             case 'SDM':
                 $model_list = \FreePBX::Sccp_manager()->dbinterface->getDb_model_info('ciscophones', 'model');
@@ -787,7 +811,7 @@ class formcreate
                 $extension_list = \FreePBX::Sccp_manager()->dbinterface->getDb_model_info('extension', 'model');
                 $extension_list[] = array( 'model' => 'NONE', 'vendor' => 'CISCO', 'dns' => '0');
                 foreach ($extension_list as &$data) {
-                    $d_name = explode(';', $data['model']);
+                    $d_name = explode(';', $data['model'] ?? '');
                     if (is_array($d_name) && (count($d_name) > 1)) {
                         $data['description'] = count($d_name).'x '.($d_name[0] ?? '');
                     } else {
@@ -825,26 +849,25 @@ class formcreate
                             $flk  = (string)$child->select['dataid'];
                             $flkv = (string)$child->select['dataval'];
                             $key  = (string)$child->default;
-                    if (!empty($fvalues[$res_n])) {
-                        if (!empty($fvalues[$res_n]['data'])) {
-                            $child->value = $fvalues[$res_n]['data'];
-                            $key = $fvalues[$res_n]['data'];
-                        }
+                    $fval = $fvalues[$res_n] ?? array();
+                    if (!empty($fval['data'] ?? null)) {
+                        $child->value = self::safeStr($fval['data'] ?? '');
+                        $key = $fval['data'];
                     }
                     foreach ($select_opt as $data) {
-                        echo '<option value="' . self::h($data[$fld]) . '"';
-                        if ($key == $data[$fld]) {
+                        echo '<option value="' . self::h($data[$fld] ?? '') . '"';
+                        if ($key == ($data[$fld] ?? '')) {
                             echo ' selected="selected"';
                         }
                         if (!empty($flk)) {
-                            echo ' data-id="'. self::h($data[$flk]) .'"';
+                            echo ' data-id="'. self::h($data[$flk] ?? '') .'"';
                         }
                         if (!empty($flkv)) {
-                            echo ' data-val="'. self::h($data[$flkv]) .'"';
+                            echo ' data-val="'. self::h($data[$flkv] ?? '') .'"';
                         }
-                        echo '>' . self::h($data[$flv]);
+                        echo '>' . self::h($data[$flv] ?? '');
                         if (!empty($flv2)) {
-                            echo ' / ' . self::h($data[$flv2]);
+                            echo ' / ' . self::h($data[$flv2] ?? '');
                         }
                         echo '</option>';
                     }
@@ -863,18 +886,21 @@ class formcreate
     }
 
     function addElementITED($child, $fvalues, $sccp_defaults, $npref, $napref) {
+        $child->help = self::safeStr($child->help ?? '');
+        $child->meta_help = self::safeStr($child->meta_help ?? '');
+        $child->label = self::safeStr($child->label ?? '');
+        $child->class = self::safeStr($child->class ?? '');
         $res_input = '';
-        $res_na =  (string)$child->name;
+        $res_na = self::safeStr($child->name ?? '');
 
     //        $res_value
         $lnhtm = '';
         $res_id = $napref.$child->name;
         $i = 0;
 
-        if (!empty($fvalues[$res_na])) {
-            if (!empty($fvalues[$res_na]['data'])) {
-                $res_value = explode(';', $fvalues[$res_na]['data']);
-            }
+        $fval_na = $fvalues[$res_na] ?? array();
+        if (!empty($fval_na['data'] ?? null)) {
+            $res_value = explode(';', $fval_na['data']);
         }
         if (empty($res_value)) {
             $res_value = array((string) $child->default);
@@ -968,11 +994,10 @@ class formcreate
     }
 
     function addElementHLP($child, $fvalues, $sccp_defaults,$npref) {
-        $res_n =  (string)$child ->name;
+        $child->label = self::safeStr($child->label ?? '');
+        $child->class = self::safeStr($child->class ?? '') ?: 'form-control';
+        $res_n = self::safeStr($child->name ?? '');
         $res_id = $npref.$res_n;
-        if (empty($child->class)) {
-            $child->class = 'form-control';
-        }
         ?>
 
         <div class="panel panel-default">
@@ -1011,25 +1036,25 @@ class formcreate
     }
 
     function addElementSLTZN($child, $fvalues, $sccp_defaults,$npref) {
-    //       Input element Select SLTZN - System Time Zone
-        $res_n =  (string)$child ->name;
+        $child->help = self::safeStr($child->help ?? '');
+        $child->meta_help = self::safeStr($child->meta_help ?? '');
+        $res_n = self::safeStr($child->name ?? '');
         $res_id = $npref.$res_n;
         $child->value ='';
 
-        if (!empty($metainfo[$res_n])) {
-            if ($child->meta_help == '1' || $child->help == 'Help!') {
-                $child->help = $metaInfo[$res_n];
+        if (!empty($metainfo[$res_n] ?? null)) {
+            $helpStr = self::safeStr($child->help);
+            if (self::safeStr($child->meta_help) === '1' || $helpStr === 'Help!') {
+                $h = $metainfo[$res_n] ?? $helpStr;
+                $child->help = self::safeStr($h);
             }
         }
 
-        if (empty($child->class)) {
-            $child->class = 'form-control';
-        }
+        $child->class = self::safeStr($child->class ?? '') ?: 'form-control';
 
-        if (!empty($fvalues[$res_n])) {
-            if (!empty($fvalues[$res_n]['data'])) {
-                $child->value = $fvalues[$res_n]['data'];
-            }
+        $fval = $fvalues[$res_n] ?? array();
+        if (!empty($fval['data'] ?? null)) {
+            $child->value = self::safeStr($fval['data'] ?? '');
         }
 
         $child->value = \date_default_timezone_get();

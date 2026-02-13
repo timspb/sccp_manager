@@ -242,7 +242,7 @@ class extconfigs
 
     public function updateTftpStructure($settingsFromDb) {
         global $amp_conf;
-        $adv_config = array('tftproot' => $settingsFromDb['tftp_path']['data'] ?? '/var/lib/tftp',
+        $adv_config = array('tftproot' => $settingsFromDb['tftp_path']['data'] ?? '/tftpboot',
                           'firmware' => 'firmware',
                           'settings' => 'settings',
                           'locales' => 'locales',
@@ -291,12 +291,12 @@ class extconfigs
         $baseConfig = array();
 
         if (empty($settingsFromDb['tftp_rewrite_path']['data'] ?? '')) {
-            $settingsFromDb['tftp_rewrite_path']['data'] = $settingsFromDb['tftp_path']['data'] ?? '/var/lib/tftp';
+            $settingsFromDb['tftp_rewrite_path']['data'] = $settingsFromDb['tftp_path']['data'] ?? '/tftpboot';
         } else {
             // Have a setting in sccpsettings. It should start with $tftp_path
             // If not we will replace it with $tftp_path. Avoids issues with legacy values
             if (!strpos($settingsFromDb['tftp_rewrite_path']["data"] ?? '', $settingsFromDb['tftp_path']['data'] ?? '')) {
-                $settingsFromDb['tftp_rewrite_path']['data'] = $settingsFromDb['tftp_path']['data'] ?? '/var/lib/tftp';
+                $settingsFromDb['tftp_rewrite_path']['data'] = $settingsFromDb['tftp_path']['data'] ?? '/tftpboot';
             }
         }
         $adv_ini = "{$settingsFromDb['tftp_rewrite_path']["data"]}/index.cnf";

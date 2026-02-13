@@ -59,7 +59,8 @@ if (!empty($_REQUEST['id'])) {
 }
 
 if (!empty($def_val['type'])) {
-    $tmp_raw = $this->getSccpModelInformation('byid', true, 'all', array('model'=>$def_val['type']));
+    $model_for_validate = is_array($def_val['type']) ? ($def_val['type']['data'] ?? '') : $def_val['type'];
+    $tmp_raw = $this->getSccpModelInformation('byid', true, 'all', array('model' => $model_for_validate));
     if (!empty($tmp_raw[0])) {
         $tmp_raw = $tmp_raw[0];
     }

@@ -272,18 +272,55 @@ trait ajaxHelper {
                 $keyl = 'default';
                 foreach ($this->aminterface->sccp_list_keysets() as $keyl => $vall) {
                     $result[$i]['softkeys'] = $keyl;
-                    if ($keyl == 'default') {
-                        foreach ($this->extconfigs->getExtConfig('keyset') as $key => $value) {
-                            $result[$i][$key] = str_replace(',', '<br>', $value);
-                        }
+                    error_log("ajaxHelper: Processing keyset '$keyl' with data: " . print_r($vall, true));
+                    
+                    // Use AMI data if available, otherwise fall back to config
+                    $softkeyData = array();
+                    error_log("ajaxHelper: Checking data type for '$keyl': " . gettype($vall) . ", is_array=" . (is_array($vall) ? 'true' : 'false') . ", empty=" . (empty($vall) ? 'true' : 'false'));
+                    
+                    if (is_array($vall) && !empty($vall)) {
+                        // Use AMI data directly
+                        $softkeyData = $vall;
+                        error_log("ajaxHelper: Using AMI data for keyset '$keyl'");
                     } else {
-                        foreach ($this->getMyConfig('softkeyset', $keyl) as $key => $value) {
-                            $result[$i][$key] = str_replace(',', '<br>', $value);
+                        // Fallback to config data
+                        if ($keyl == 'default') {
+                            $softkeyData = $this->extconfigs->getExtConfig('keyset');
+                            error_log("ajaxHelper: Using extconfigs data for keyset '$keyl'");
+                        } else {
+                            $softkeyData = $this->getMyConfig('softkeyset', $keyl);
+                            error_log("ajaxHelper: Using getMyConfig data for keyset '$keyl'");
+                        }
+                    }
+                    
+                    // Process the softkey data
+                    foreach ($softkeyData as $key => $value) {
+                        if (is_array($vall) && !empty($vall)) {
+                            // For AMI data, use array_filter and trim as requested for PHP 8.2
+                            if (is_string($value) && strpos($value, ',') !== false) {
+                                $array = array_filter(array_map('trim', explode(',', $value)));
+                                $result[$i][$key] = implode('<br>', $array);
+                            } else {
+                                $result[$i][$key] = (string)$value;
+                            }
+                        } else {
+                            // For config data, handle newlines first
+                            if (is_string($value) && strpos($value, "\n") !== false) {
+                                // Use array_filter and trim as requested for PHP 8.2
+                                $array = array_filter(array_map('trim', explode("\n", $value)));
+                                $cleanValue = implode(',', $array);
+                                $result[$i][$key] = str_replace(',', '<br>', $cleanValue);
+                            } else {
+                                $result[$i][$key] = str_replace(',', '<br>', (string)$value);
+                            }
                         }
                     }
 
                     $i++;
                 }
+                
+                // Debug: Log the final result before returning
+                error_log("ajaxHelper: Final result before return: " . print_r($result, true));
                 return $result;
                 break;
             case 'getExtensionGrid':
@@ -555,97 +592,128 @@ trait ajaxHelper {
     public function getFilesFromProvisioner($request) {
         $filesToGet = array();
         $totalFiles = 0;
+        $srcDir = array();
+        $dstDir = array();
         $provisionerUrl = "https://github.com/dkgroot/provision_sccp/raw/master/";
-        // TODO: Maybe should always fetch to ensure have latest, backing up old version
-        if (!file_exists("{$this->sccppath['tftp_path']}/masterFilesStructure.xml")) {
-            if (!$this->getFileListFromProvisioner($this->sccppath['tftp_path'])) {
+        $tftpPath = $this->sccppath['tftp_path'] ?? '';
+        $masterXml = $tftpPath . '/masterFilesStructure.xml';
+        if (!file_exists($masterXml)) {
+            if (!$this->getFileListFromProvisioner($tftpPath)) {
                 return array('status' => false,
-                    'message' => "{$provisionerUrl}tools/tftpbootFiles.xml cannot be found. Check your internet connection, and that this path exists",
+                    'message' => $provisionerUrl . "tools/tftpbootFiles.xml cannot be fetched. Check permissions (e.g. " . $tftpPath . " writable by web server), connectivity to github.com, and that the URL exists.",
                     'reload' => false);
             }
         }
-        $tftpBootXml = simplexml_load_file("{$this->sccppath['tftp_path']}/masterFilesStructure.xml");
+        $tftpBootXml = @simplexml_load_file($masterXml);
+        if ($tftpBootXml === false) {
+            return array('status' => false, 'message' => 'Could not load masterFilesStructure.xml', 'reload' => false);
+        }
 
         switch ($request['type']) {
             case 'firmware':
-                $device = $request['device'];
+                $device = $request['device'] ?? '';
                 $firmwareDir = $tftpBootXml->xpath("//Directory[@name='firmware']");
+                if (empty($firmwareDir)) {
+                    return array('status' => false, 'message' => 'Firmware directory not found in master file list', 'reload' => false);
+                }
                 $result = $firmwareDir[0]->xpath("//Directory[@name='{$device}']");
-                $filesToGet['firmware'] = (array)$result[0]->FileName;
+                if (empty($result)) {
+                    return array('status' => false, 'message' => "Device '{$device}' not found in firmware list", 'reload' => false);
+                }
+                $filesToGet['firmware'] = $this->normalizeFileNameList($result[0]->FileName);
                 $totalFiles += count($filesToGet['firmware']);
-                $srcDir['firmware'] = $provisionerUrl . (string)$result[0]->DirectoryPath;
-                $dstDir['firmware'] = "{$this->sccppath['tftp_firmware_path']}/{$device}";
-
+                $srcDir['firmware'] = $provisionerUrl . (string)($result[0]->DirectoryPath ?? '');
+                $dstDir['firmware'] = ($this->sccppath['tftp_firmware_path'] ?? '') . "/{$device}";
                 $msg = "Firmware for {$device} has been successfully downloaded";
                 break;
             case 'locale':
-                $language = $request['locale'];
-                // Get locales
+                $language = $request['locale'] ?? '';
                 $localeDir = $tftpBootXml->xpath("//Directory[@name='languages']");
+                if (empty($localeDir)) {
+                    return array('status' => false, 'message' => 'Languages directory not found in master file list', 'reload' => false);
+                }
                 $result = $localeDir[0]->xpath("//Directory[@name='{$language}']");
-                $filesToGet['language'] = (array)$result[0]->FileName;
+                if (empty($result)) {
+                    return array('status' => false, 'message' => "Locale '{$language}' not found", 'reload' => false);
+                }
+                $filesToGet['language'] = $this->normalizeFileNameList($result[0]->FileName);
                 $totalFiles += count($filesToGet['language']);
-                $srcDir['language'] = $provisionerUrl . (string)$result[0]->DirectoryPath;
-                $dstDir['language'] = "{$this->sccppath['tftp_lang_path']}/{$language}";
-
-                // Get countries. Country is a substring of locale with exception of korea
+                $srcDir['language'] = $provisionerUrl . (string)($result[0]->DirectoryPath ?? '');
+                $dstDir['language'] = ($this->sccppath['tftp_lang_path'] ?? '') . "/{$language}";
                 $country = explode('_', $language);
                 array_shift($country);
                 $countryName = array_shift($country);
-                while (count($country)>=1) {
+                while (count($country) >= 1) {
                     $countryName .= '_' . array_shift($country);
                 }
                 $msg = "{$language} Locale and Country tones have been successfully downloaded";
-                //fall through intentionally to also get country files
+                // fall through to also get country files
 
             case 'country':
                 if ($totalFiles == 0) {
-                    //Request is for countries; if >0, have fallen through from locale
-                    $countryName = $request['country'];
+                    $countryName = $request['country'] ?? '';
                     $msg = "{$countryName} country tones have been successfully downloaded";
                 }
-
                 $result = $tftpBootXml->xpath("//Directory[@name='{$countryName}']");
-                $filesToGet['country'] = (array)$result[0]->FileName;
+                if (empty($result)) {
+                    return array('status' => false, 'message' => "Country '{$countryName}' not found in master file list", 'reload' => false);
+                }
+                $filesToGet['country'] = $this->normalizeFileNameList($result[0]->FileName);
                 $totalFiles += count($filesToGet['country']);
-                $srcDir['country'] = $provisionerUrl . (string)$result[0]->DirectoryPath;
-                $dstDir['country'] = "{$this->sccppath['tftp_countries_path']}/{$countryName}";
+                $srcDir['country'] = $provisionerUrl . (string)($result[0]->DirectoryPath ?? '');
+                $dstDir['country'] = ($this->sccppath['tftp_countries_path'] ?? '') . "/{$countryName}";
                 break;
             default:
                 return array('status' => false, 'message' => 'Invalid request', 'reload' => false);
-                break;
         }
-        // Now get the files
         $filesRetrieved = 0;
-        foreach (array('language','country', 'firmware') as $section){
-            if (!isset($dstDir[$section])) {
-                // No request for this section
+        foreach (array('language', 'country', 'firmware') as $section) {
+            if (!isset($dstDir[$section], $filesToGet[$section], $srcDir[$section])) {
                 continue;
             }
-            $srcDir = $srcDir[$section];
-            $dstDir = $dstDir[$section];
-            if (!is_dir($dstDir)) {
-                mkdir($dstDir, 0755);
+            $srcBase = rtrim($srcDir[$section], '/');
+            $dstBase = $dstDir[$section];
+            if (!is_dir($dstBase)) {
+                @mkdir($dstBase, 0755, true);
             }
             foreach ($filesToGet[$section] as $srcFile) {
-                try {
-                  file_put_contents("{$dstDir}/{$srcFile}",
-                      file_get_contents($srcDir. $srcFile));
-                } catch (\Exception $e) {
+                $srcFile = (string)$srcFile;
+                $fileUrl = $srcBase . '/' . $srcFile;
+                $destPath = $dstBase . '/' . $srcFile;
+                if (!$this->fetchUrlToFile($fileUrl, $destPath)) {
                     return array('status' => false,
-                        'message' => "{$countriesSrcDir}{$srcFile} cannot be found. Check your internet connection, and that this path exists",
+                        'message' => $fileUrl . " could not be downloaded. Check permissions (" . $dstBase . " writable), connectivity to github.com, and URL.",
                         'reload' => false);
                 }
-                $filesRetrieved ++;
-                $percentComplete = $filesRetrieved *100 / $totalFiles;
-                $data = "{$percentComplete},";
-                echo $data;
-                ob_flush();
+                $filesRetrieved++;
+                $percentComplete = $totalFiles > 0 ? ($filesRetrieved * 100 / $totalFiles) : 100;
+                echo $percentComplete . ",";
+                if (function_exists('ob_flush')) {
+                    ob_flush();
+                }
                 flush();
             }
         }
-
         return array('status' => true, 'message' => $msg, 'reload' => true);
+    }
+
+    /**
+     * Normalize SimpleXML FileName node(s) to array of string file names.
+     */
+    private function normalizeFileNameList($fileNameNode): array {
+        if ($fileNameNode === null) {
+            return array();
+        }
+        $arr = (array)$fileNameNode;
+        $out = array();
+        foreach ($arr as $v) {
+            if (is_object($v)) {
+                $out[] = (string)$v;
+            } else {
+                $out[] = (string)$v;
+            }
+        }
+        return $out;
     }
 
     function saveSccpDevice($get_settings, $validateonly = false) {

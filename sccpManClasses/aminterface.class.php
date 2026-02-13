@@ -223,7 +223,8 @@ class aminterface
                 try {
                     throw new \invalidArgumentException("Counts do not match on returned AMI Result");
                 } catch ( \invalidArgumentException $e) {
-                    echo substr(strrchr(get_class($response), '\\'), 1), " ", $e->getMessage(), "\n";
+                    // Use error_log instead of echo to avoid breaking JSON responses
+                    error_log(substr(strrchr(get_class($response), '\\'), 1) . " " . $e->getMessage());
                 }
                 return $response;
             }
@@ -410,10 +411,22 @@ class aminterface
             $_response = $this->send($_action);
             if ($_response !== false) {
                 $_res = $_response->getResult();
-                foreach ($_res as $key => $value) {
-                    $result[$key] = $key;
+                error_log("sccp_list_keysets: AMI result count=" . (is_array($_res) ? count($_res) : 'not array'));
+                if (is_array($_res)) {
+                    foreach ($_res as $key => $value) {
+                        // Store both key and full softkey data
+                        $result[$key] = $value;
+                        // Debug log the first few entries to understand the format
+                        if (count($result) <= 3) {
+                            error_log("sccp_list_keysets entry: key={$key}, value=" . print_r($value, true));
+                        }
+                    }
                 }
+            } else {
+                error_log("sccp_list_keysets: AMI response is false");
             }
+        } else {
+            error_log("sccp_list_keysets: AMI not connected");
         }
         return $result;
     }

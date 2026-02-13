@@ -117,6 +117,20 @@ Or use **Admin → Module Admin** in the FreePBX GUI when an update is available
 - For Cisco phones to work correctly, provision them with firmware **v8.1 or higher**.
 - You can use Cisco language profiles to switch the phones to your locale.
 
+### Firmware download from GitHub (Provision_Sccp)
+
+The module fetches firmware/locale files from [dkgroot/provision_sccp](https://github.com/dkgroot/provision_sccp). If downloads fail:
+
+1. **Permissions** — The TFTP root (e.g. `/tftpboot`) and, if used, `admin/modules/sccp_manager/firmware` must be writable by the web server user (often `asterisk` or `www-data`):
+   ```bash
+   sudo chown -R asterisk:asterisk /tftpboot
+   ```
+2. **Connectivity** — The server must reach `github.com` over HTTPS (e.g. `curl -I https://github.com`). If you use a proxy, configure PHP/cURL or environment variables (`HTTP_PROXY`/`HTTPS_PROXY`) as needed.
+3. **Diagnostics** — Run the provided check script (as root or the web server user):
+   ```bash
+   bash /var/www/html/admin/modules/sccp_manager/contrib/check_provisioner_env.sh /tftpboot
+   ```
+
 ### Chat
 
 [![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/sccp_manager/community)

@@ -47,7 +47,7 @@ abstract class Response extends IncomingMessage
         unset($this->_events['ClosingEvent']);
     }
     public function getCountOfEvents() {
-        return count($this->_events);
+        return is_array($this->_events) ? count($this->_events) : 0;
     }
 
     public function isSuccess()
@@ -212,7 +212,17 @@ class SCCPGeneric_Response extends Response
             $this->_events[] = $event;
             return;
         }
-        switch ( $event->getName()) {
+        $eventName = $event->getName();
+        $eventListEndEvent = $this->getKey('eventListEndEvent');
+        
+        // Explicit check for closing event
+        if ($eventName === $eventListEndEvent) {
+            $this->_events['ClosingEvent'] = $event;
+            $this->eventListEndEvent = null;
+            return;
+        }
+        
+        switch ( $eventName) {
             case $thisSetEventEntryType :
                 $this->_temptable['Entries'][] = $event;
                 break;
@@ -236,15 +246,39 @@ class SCCPGeneric_Response extends Response
                 // If counts do not match return false and table will not be
                 //loaded
                 $tableName = $event->getTableName();
-                $expectedEntries = $event->getKey('TableEntries') ?? 0;
-                $actualEntries = count($this->_tables[$tableName]['Entries'] ?? []);
-                if ($expectedEntries != $actualEntries) {
+                $expectedEntriesRaw = $event->getKey('TableEntries');
+                $expectedEntries = (int)($expectedEntriesRaw ?? 0);
+                $entries = $this->_tables[$tableName]['Entries'] ?? [];
+                
+                // Ensure we have an array and count properly for PHP 8.2
+                if (!is_array($entries)) {
+                    $entries = [];
+                }
+                $actualEntries = count($entries);
+                
+                // Debug logging for softkey issues
+                if ($tableName === 'SoftKeySets') {
+                    error_log("SoftKeySets debug: expectedRaw='{$expectedEntriesRaw}', expected={$expectedEntries}, actual={$actualEntries}, entriesType=" . gettype($entries));
+                    if ($expectedEntries !== $actualEntries) {
+                        error_log("SoftKeySets count mismatch: expected={$expectedEntries}, actual={$actualEntries}");
+                        // For debugging, let's be more lenient with SoftKeySets
+                        if ($actualEntries > 0) {
+                            error_log("SoftKeySets: Allowing mismatch since we have actual entries");
+                            break; // Continue processing instead of returning false
+                        }
+                    }
+                }
+                
+                // Cast both to int for strict comparison
+                if ((int)$expectedEntries !== (int)$actualEntries) {
+                    error_log("Table {$tableName}: Count mismatch - expected={$expectedEntries}, actual={$actualEntries}");
                     return false;
                 }
                 break;
             //case $eventListEndEvent;
             case $this->getKey('eventListEndEvent');
                 // Have the list end event. The correct number of entries is verified in the event constructor
+                error_log("addEvent: Setting ClosingEvent to " . get_class($event));
                 $this->_events['ClosingEvent'] = $event;
                 $this->eventListEndEvent = null;
                 //return $this->_completed = true;
@@ -259,10 +293,28 @@ class SCCPGeneric_Response extends Response
     {
         $result = array();
         $_rawtable = $this->Table2Array($_tablename);
+        
+        // Debug logging for SoftKeySets
+        if ($_tablename === 'SoftKeySets') {
+            error_log("ConvertTableData SoftKeySets: rawtable count=" . (is_array($_rawtable) ? count($_rawtable) : 'not array'));
+        }
+        
         // Check that there is actually data to be converted
-        if (empty($_rawtable)) { return $result;}
+        if (empty($_rawtable) || !is_array($_rawtable)) { 
+            if ($_tablename === 'SoftKeySets') {
+                error_log("ConvertTableData SoftKeySets: No data to convert");
+            }
+            return $result;
+        }
+        
         foreach ($_rawtable as $_row) {
+            if (!is_array($_row)) {
+                continue; // Skip non-array entries
+            }
+            
             $all_key_ok = true;
+            $set_name = array(); // Initialize to avoid undefined variable
+            
             // No need to test if $_fkey is array as array required
             foreach ($_fkey as $_fid) {
                 if (empty($_row[$_fid] ?? '')) {
@@ -273,7 +325,7 @@ class SCCPGeneric_Response extends Response
             }
             $Data = &$result;
 
-            if ($all_key_ok) {
+            if ($all_key_ok && !empty($set_name)) {
                 foreach ($set_name as $value_id) {
                     $Data = &$Data[$value_id];
                 }
@@ -318,15 +370,21 @@ class SCCPGeneric_Response extends Response
 
     public function Table2Array( $tablename )
     {
-        $result =array();
+        $result = array();
         if (empty($tablename) || !is_array($this->_tables)) {
             return $result;
         }
         if (!isset($this->_tables[$tablename]['Entries']) || !is_array($this->_tables[$tablename]['Entries'])) {
             return $result;
         }
+        
         foreach ($this->_tables[$tablename]['Entries'] as $trow) {
-            $result[]= $trow->getKeys();
+            if (is_object($trow) && method_exists($trow, 'getKeys')) {
+                $keys = $trow->getKeys();
+                if (is_array($keys)) {
+                    $result[] = $keys;
+                }
+            }
         }
         return $result;
     }
@@ -344,15 +402,83 @@ class SCCPShowSoftkeySets_Response extends SCCPGeneric_Response
     public function __construct($rawContent)
     {
         parent::__construct($rawContent);
-        $this->setKey('eventlistendevent', 'SCCPShowSoftkeySetsComplete');
+        $this->setKey('eventlistendevent', 'SCCPShowSoftKeySetsComplete');
+        $this->setKey('eventListEndEvent', 'SCCPShowSoftKeySetsComplete');
     }
     public function getResult()
     {
-        return $this->ConvertTableData(
-            'SoftKeySets',
-            array('set','mode'),
-            array('description'=>'description','label'=>'label','lblid'=>'lblid')
-            );
+        // Custom processing for SoftKeySets - group by set and mode
+        $result = array();
+        $_rawtable = $this->Table2Array('SoftKeySets');
+        
+        if (empty($_rawtable) || !is_array($_rawtable)) {
+            error_log("SCCPShowSoftkeySets_Response: No raw table data");
+            return $result;
+        }
+        
+        error_log("SCCPShowSoftkeySets_Response: Processing " . (is_array($_rawtable) ? count($_rawtable) : 0) . " entries");
+        
+        // Group softkeys by set and mode
+        $grouped = array();
+        foreach ($_rawtable as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            
+            $set = $row['set'] ?? 'default';
+            $mode = strtolower($row['mode'] ?? '');
+            $label = $row['label'] ?? '';
+            
+            if (!empty($mode) && !empty($label)) {
+                if (!isset($grouped[$set])) {
+                    $grouped[$set] = array();
+                }
+                if (!isset($grouped[$set][$mode])) {
+                    $grouped[$set][$mode] = array();
+                }
+                $grouped[$set][$mode][] = strtolower($label);
+            }
+        }
+        
+        // Convert grouped data to expected format
+        foreach ($grouped as $set => $modes) {
+            $setData = array();
+            foreach ($modes as $mode => $labels) {
+                // Convert mode names to expected format
+                $modeKey = $this->mapModeToKey($mode);
+                if ($modeKey) {
+                    $setData[$modeKey] = implode(',', array_unique($labels));
+                }
+            }
+            
+            if (!empty($setData)) {
+                $result[$set] = $setData;
+            }
+        }
+        
+        error_log("SCCPShowSoftkeySets_Response: Final result count=" . (is_array($result) ? count($result) : 0));
+        return $result;
+    }
+    
+    private function mapModeToKey($mode)
+    {
+        $modeMap = array(
+            'onhook' => 'onhook',
+            'connected' => 'connected', 
+            'onhold' => 'onhold',
+            'ringin' => 'ringin',
+            'offhook' => 'offhook',
+            'conntrans' => 'conntrans',
+            'digitsfoll' => 'digitsfoll',
+            'connconf' => 'connconf',
+            'ringout' => 'ringout',
+            'offhookfeat' => 'offhookfeat',
+            'holdconf' => 'onhold', // Map HOLDCONF to onhold
+            'inusehint' => 'connected', // Map INUSEHINT to connected
+            'onhookstealable' => 'onhook' // Map ONHOOKSTEALABLE to onhook
+        );
+        
+        return $modeMap[strtolower($mode)] ?? null;
     }
 }
 

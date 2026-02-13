@@ -194,7 +194,7 @@ class xmlinterface
         if (!empty($dev_config['nametemplate'])) {
             $xml_template = "{$data_path}/{$dev_config['nametemplate']}";
         } else {
-            $xml_template = "{$data_path}/templates/SEP0000000000.cnf.xml_79df_template";
+            $xml_template = "{$data_path}/SEP0000000000.cnf.xml_79df_template";
         }
         $xml_name = "{$store_path}/{$dev_id}.cnf.xml";
         if (!file_exists($xml_template)) {
@@ -801,8 +801,11 @@ class xmlinterface
         $xmlstr .= "  <softKeySets>\n";
         foreach ($config[$name] as $key => $value) {
             $xmlstr .= '    <softKeySet id="' . $key . '">' . "\n";
-            foreach (explode(",", $value) as $keyvalue) {
-                $xmlstr .= '      <softKey keyID="' . $keyvalue . '" />' . "\n";
+            $keyvalues = array_filter(array_map('trim', explode(",", $value))); // Remove empty lines and whitespace
+            foreach ($keyvalues as $keyvalue) {
+                if (!empty($keyvalue)) {
+                    $xmlstr .= '      <softKey keyID="' . $keyvalue . '" />' . "\n";
+                }
             }
             $xmlstr .= "    </softKeySet>\n";
         }

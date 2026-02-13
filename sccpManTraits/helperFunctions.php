@@ -313,7 +313,7 @@ trait helperFunctions {
 
                 $remoteFileName = ".sccp_manager_remap_probe_sentinel_temp".mt_rand(0, 9999999).".tlzz";
                 $remoteFileContent = "# This is a test file created by Sccp_Manager. It can be deleted without impact";
-                $testFtpDir = ($this->sccpvalues['tftp_path']['data'] ?? '/var/lib/tftp') . '/settings';
+                $testFtpDir = ($this->sccpvalues['tftp_path']['data'] ?? '/tftpboot') . '/settings';
 
                 // write a sentinel to a tftp subdirectory to see if mapping is working
 
@@ -345,13 +345,69 @@ trait helperFunctions {
        $dom->save($filename);
     }
 
-    public function getFileListFromProvisioner(string $tftpRootPath) {
+    /**
+     * Download a URL to a file (follows redirects, works with GitHub raw URLs).
+     * Prefers cURL; falls back to file_get_contents with stream context if cURL unavailable.
+     * @param string $url Full URL (e.g. https://github.com/.../raw/master/path/file.xml)
+     * @param string $destPath Absolute path to save file
+     * @return bool true on success, false on failure
+     */
+    public function fetchUrlToFile(string $url, string $destPath): bool {
+        if (function_exists('curl_init')) {
+            $ch = curl_init($url);
+            if ($ch === false) {
+                return false;
+            }
+            $fp = @fopen($destPath, 'wb');
+            if ($fp === false) {
+                curl_close($ch);
+                return false;
+            }
+            curl_setopt_array($ch, [
+                CURLOPT_FILE => $fp,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_MAXREDIRS => 5,
+                CURLOPT_TIMEOUT => 60,
+                CURLOPT_CONNECTTIMEOUT => 15,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_USERAGENT => 'FreePBX-sccp_manager/1.0',
+            ]);
+            $ok = curl_exec($ch);
+            $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $err = curl_error($ch);
+            curl_close($ch);
+            fclose($fp);
+            if (!$ok || $code < 200 || $code >= 300) {
+                if ($ok && file_exists($destPath)) {
+                    @unlink($destPath);
+                }
+                if ($err !== '') {
+                    error_log('sccp_manager fetchUrlToFile: ' . $err . ' [URL: ' . $url . ']');
+                }
+                return false;
+            }
+            return true;
+        }
+        $ctx = stream_context_create([
+            'http' => [
+                'follow_location' => 1,
+                'timeout' => 60,
+                'user_agent' => 'FreePBX-sccp_manager/1.0',
+            ],
+            'ssl' => ['verify_peer' => true],
+        ]);
+        $content = @file_get_contents($url, false, $ctx);
+        if ($content === false) {
+            return false;
+        }
+        return (file_put_contents($destPath, $content) !== false);
+    }
 
-        $provisionerUrl = "https://github.com/dkgroot/provision_sccp/raw/master/";
-        // Get master tftpboot directory structure
-        try {
-            file_put_contents("{$tftpRootPath}/masterFilesStructure.xml",file_get_contents("{$provisionerUrl}tools/tftpbootFiles.xml"));
-        } catch (\Exception $e) {
+    public function getFileListFromProvisioner(string $tftpRootPath): bool {
+        $provisionerUrl = 'https://github.com/dkgroot/provision_sccp/raw/master/';
+        $url = $provisionerUrl . 'tools/tftpbootFiles.xml';
+        $dest = $tftpRootPath . '/masterFilesStructure.xml';
+        if (!$this->fetchUrlToFile($url, $dest)) {
             return false;
         }
         return true;

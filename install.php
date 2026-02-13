@@ -1052,7 +1052,8 @@ function checkTftpServer() {
     // TODO: add option to use external server
     $remoteFileName = ".sccp_manager_installer_probe_sentinel_temp".mt_rand(0, 9999999);
     $remoteFileContent = "# This is a test file created by Sccp_Manager. It can be deleted without impact";
-    $possibleFtpDirs = array('/srv', '/srv/tftp','/var/lib/tftp', '/tftpboot');
+    // Prefer /tftpboot (Sangoma OS / FreePBX typical TFTP root) when it exists and is writable
+    $possibleFtpDirs = array('/tftpboot', '/srv/tftp', '/srv', '/var/lib/tftp');
 
     // write a couple of sentinels to different distro tftp locations in the filesystem
     // TODO: Depending on distro, do we have write permissions
