@@ -245,7 +245,7 @@ class formcreate
                                     if ($value['value']=='NONE' && empty($res_value)) {
                                         $res_vf = true;
                                     }
-                                    if ((isset($res_value[0]['internal'])) || ($res_value[0] == 'internal')) {
+                                    if ((isset($res_value[0]['internal'])) || (isset($res_value[0]) && $res_value[0] == 'internal')) {
                                         $res_vf = true;
                                         // Remove the value from $res_value so that do not add empty row for internal
                                         array_shift($res_value);
@@ -296,15 +296,26 @@ class formcreate
                                 foreach ($child->xpath('input') as $value) {
                                     $field_id = (string)$value['field'];
                                     $res_n = $res_id.'['.$i.']['.$field_id.']';
+                                    
+                                    // Initialize array to prevent undefined key errors
+                                    if (!isset($opt_at[$field_id])) {
+                                        $opt_at[$field_id] = array();
+                                    }
+                                    
                                     if (!empty($value->class)) {
                                         $opt_at[$field_id]['class']='form-control ' .(string)$value->class;
+                                    } else {
+                                        $opt_at[$field_id]['class'] = 'form-control';
                                     }
 
-                                    $defValue = (isset($addrArr[$field_id])) ? $addrArr[$field_id]: "";
+                                    $defValue = (isset($addrArr[$field_id])) ? $addrArr[$field_id] : "";
                                     echo '<input type="text" name="'. self::h($res_n) .'" class="'. self::h($opt_at[$field_id]['class']) .'" value="'. self::h($defValue) .'"';
 
 
                                     if (isset($value->options)) {
+                                        if (!isset($opt_at[$field_id]['options'])) {
+                                            $opt_at[$field_id]['options'] = array();
+                                        }
                                         foreach ($value->options ->attributes() as $optkey => $optval) {
                                             $opt_at[$field_id]['options'][$optkey]=(string)$optval;
                                             $opt_at[$field_id]['nameseparator'] = (null !== (string)$value['nameseparator']) ? (string)$value['nameseparator'] : '';
@@ -512,16 +523,16 @@ class formcreate
             case 'SLTD':
                 // Device Language
                 $select_opt = array('xx' => 'No language packs found');
-                if (!empty($installedLangs['languages']['have'])) {
-                    $select_opt = (array)$installedLangs['languages']['have'];
-                }
+                                if (!empty($installedLangs['languages']['have'] ?? [])) {
+                                    $select_opt = (array)($installedLangs['languages']['have'] ?? []);
+                                }
                 break;
             case 'SLTN':
                 // Network Language
                 $select_opt = array('xx' => 'No country packs found');
-                if (!empty($installedLangs['countries']['have'])) {
-                    $select_opt = (array)$installedLangs['countries']['have'];
-                }
+                                if (!empty($installedLangs['countries']['have'] ?? [])) {
+                                    $select_opt = (array)($installedLangs['countries']['have'] ?? []);
+                                }
                 break;
             case 'SLZ':
                 $timeZoneOffsetList = array('-12' => 'GMT -12', '-11' => 'GMT -11', '-10' => 'GMT -10', '-09' => 'GMT -9',
@@ -568,7 +579,7 @@ class formcreate
             case 'SLP':
                 $dialplan_list = array();
                 foreach (\FreePBX::Sccp_manager()->getDialPlanList() as $tmpkey) {
-                    $tmp_id = $tmpkey['id'];
+                    $tmp_id = $tmpkey['id'] ?? '';
                     $dialplan_list[$tmp_id] = $tmp_id;
                 }
                 $select_opt= $dialplan_list;
@@ -604,8 +615,8 @@ class formcreate
                             echo  '<select name="'.$res_id.'" class="'. $child->class . '" id="' . $res_id . '">';
                             foreach ($select_opt as $key => $val) {
                                 if (is_array($val)) {
-                                    $opt_key = (isset($val['id'])) ? $val['id'] : $key;
-                                    $opt_val = (isset($val['val'])) ? $val['val'] : $val;
+                                    $opt_key = $val['id'] ?? $key;
+                                    $opt_val = $val['val'] ?? $val;
                                 } else if (\FreePBX::Sccp_manager()->is_assoc($select_opt)){
                                     // have associative array
                                     $opt_key = $key;
@@ -653,19 +664,19 @@ class formcreate
         switch ($child['type']) {
             case 'SLDA':
                 $select_opt = array('xx' => 'No language packs found');
-                if (!empty($installedLangs['languages']['have'])) {
-                    $select_opt = $installedLangs['languages']['have'];
+                if (!empty($installedLangs['languages']['have'] ?? [])) {
+                    $select_opt = $installedLangs['languages']['have'] ?? [];
                 }
-                $selectArray = $installedLangs['languages']['available'];
+                $selectArray = $installedLangs['languages']['available'] ?? [];
                 $requestType = 'locale';
                 break;
 
             case 'SLNA':
                 $select_opt = array('xx' => 'No country packs found');
-                if (!empty($installedLangs['countries']['have'])) {
-                    $select_opt = $installedLangs['countries']['have'];
+                if (!empty($installedLangs['countries']['have'] ?? [])) {
+                    $select_opt = $installedLangs['countries']['have'] ?? [];
                 }
-                $selectArray = $installedLangs['countries']['available'];
+                $selectArray = $installedLangs['countries']['available'] ?? [];
                 $requestType = 'country';
               break;
         }
@@ -765,12 +776,12 @@ class formcreate
                 foreach ($assignedExts as $name => $nameArr ) {
                       $select_opt[$name]['label'] .= " -  in use";
                 }
-                $child->default = $fvalues['defaultLine'];
+                $child->default = $fvalues['defaultLine'] ?? '';
                 break;
             case 'SDMF':
                 // Sip extensions
                 $select_opt = \FreePBX::Sccp_manager()->dbinterface->getSipTableData('extensionList');
-                $child->default = $fvalues['defaultLine'];
+                $child->default = $fvalues['defaultLine'] ?? '';
                 break;
             case 'SDE':
                 $extension_list = \FreePBX::Sccp_manager()->dbinterface->getDb_model_info('extension', 'model');
@@ -778,9 +789,9 @@ class formcreate
                 foreach ($extension_list as &$data) {
                     $d_name = explode(';', $data['model']);
                     if (is_array($d_name) && (count($d_name) > 1)) {
-                        $data['description'] = count($d_name).'x '.$d_name[0];
+                        $data['description'] = count($d_name).'x '.($d_name[0] ?? '');
                     } else {
-                        $data['description'] = $data['model'];
+                        $data['description'] = $data['model'] ?? '';
                     }
                 }
                 unset($data);
@@ -884,6 +895,14 @@ class formcreate
                 $res_n  = $res_id.'['.$i.']['.$fields_id.']';
                 $res_ni = $res_id.'_'.$i.'_'.$fields_id;
 
+                // Initialize array to prevent undefined key errors
+                if (!isset($opt_at[$fields_id])) {
+                    $opt_at[$fields_id] = array();
+                }
+                if (!isset($opt_at[$fields_id]['options'])) {
+                    $opt_at[$fields_id]['options'] = array();
+                }
+
                 $opt_at[$fields_id]['display_prefix']=(string)$value['display_prefix'];
                 $opt_at[$fields_id]['display_sufix']=(string)$value['display_sufix'];
 
@@ -904,13 +923,13 @@ class formcreate
                 $res_opt['inp_end'] = '<span class="input-group-addon" id="bases_'.$res_n.'">'.$opt_at[$fields_id]['display_sufix'].'</span></div>';
                 switch ($value['type']) {
                     case 'date':
-                        echo $res_opt['inp_st'].'<input type="date" name="'. self::h($res_n) .'" value="'. self::h($res_vf[$i2]) .'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
+                        echo $res_opt['inp_st'].'<input type="date" name="'. self::h($res_n) .'" value="'. self::h($res_vf[$i2] ?? '') .'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
                         break;
                     case 'number':
-                        echo $res_opt['inp_st'].'<input type="number" name="'. self::h($res_n) .'" value="'. self::h($res_vf[$i2]) .'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
+                        echo $res_opt['inp_st'].'<input type="number" name="'. self::h($res_n) .'" value="'. self::h($res_vf[$i2] ?? '') .'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
                         break;
                     case 'input':
-                        echo $res_opt['inp_st'].'<input type="text" name="'. self::h($res_n) .'" value="'. self::h($res_vf[$i2]) .'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
+                        echo $res_opt['inp_st'].'<input type="text" name="'. self::h($res_n) .'" value="'. self::h($res_vf[$i2] ?? '') .'"'.$res_opt['addon']. '>'.$res_opt['inp_end'];
                         break;
                     case 'title':
                         if ($i > 0) {
@@ -926,7 +945,7 @@ class formcreate
                         foreach ($value->xpath('data') as $optselect) {
                             $opt_at[$fields_id]['data'].= (string)$optselect.';';
                             echo '<option value="' . self::h($optselect) . '"';
-                            if (strtolower((string)$optselect) == strtolower((string)$res_vf[$i2])) {
+                            if (strtolower((string)$optselect) == strtolower((string)($res_vf[$i2] ?? ''))) {
                                 echo ' selected="selected"';
                             }
                             echo '>' . self::h($optselect) . '</option>';
