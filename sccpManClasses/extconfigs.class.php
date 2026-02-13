@@ -6,6 +6,8 @@ class extconfigs
 {
     /** @var object|null Parent Sccp_manager instance */
     public $paren_class = null;
+    /** @var array SCCP configuration values */
+    public $sccpvalues = array();
 
     public function __construct($parent_class = null)
     {
@@ -240,7 +242,7 @@ class extconfigs
 
     public function updateTftpStructure($settingsFromDb) {
         global $amp_conf;
-        $adv_config = array('tftproot' => $settingsFromDb['tftp_path']['data'],
+        $adv_config = array('tftproot' => $settingsFromDb['tftp_path']['data'] ?? '/var/lib/tftp',
                           'firmware' => 'firmware',
                           'settings' => 'settings',
                           'locales' => 'locales',
@@ -288,19 +290,19 @@ class extconfigs
                         );
         $baseConfig = array();
 
-        if (empty($settingsFromDb['tftp_rewrite_path']['data'])) {
-            $settingsFromDb['tftp_rewrite_path']['data'] = $settingsFromDb['tftp_path']['data'];
+        if (empty($settingsFromDb['tftp_rewrite_path']['data'] ?? '')) {
+            $settingsFromDb['tftp_rewrite_path']['data'] = $settingsFromDb['tftp_path']['data'] ?? '/var/lib/tftp';
         } else {
             // Have a setting in sccpsettings. It should start with $tftp_path
             // If not we will replace it with $tftp_path. Avoids issues with legacy values
-            if (!strpos($settingsFromDb['tftp_rewrite_path']["data"],$settingsFromDb['tftp_path']['data'])) {
-                $settingsFromDb['tftp_rewrite_path']['data'] = $settingsFromDb['tftp_path']['data'];
+            if (!strpos($settingsFromDb['tftp_rewrite_path']["data"] ?? '', $settingsFromDb['tftp_path']['data'] ?? '')) {
+                $settingsFromDb['tftp_rewrite_path']['data'] = $settingsFromDb['tftp_path']['data'] ?? '/var/lib/tftp';
             }
         }
         $adv_ini = "{$settingsFromDb['tftp_rewrite_path']["data"]}/index.cnf";
         $adv_tree_mode = 'def';
 
-        switch ($settingsFromDb['tftp_rewrite']['data']) {
+        switch ($settingsFromDb['tftp_rewrite']['data'] ?? 'off') {
             case 'pro':
                 $adv_tree_mode = 'pro';
                 if (!empty($adv_ini) && file_exists($adv_ini)) {

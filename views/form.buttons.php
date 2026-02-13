@@ -37,7 +37,7 @@ if (!empty($_REQUEST['id'])) {
     //$show_buttons = $max_buttons;
 }
 if (!empty($_REQUEST['new_id'])) {
-    $val = $_REQUEST['type'];
+    $val = $_REQUEST['type'] ?? '';
     $dev_schema =  $this-> getSccpModelInformation('byid', false, "all", array('model' =>$val));
 //   $db_device = $this->dbinterface->getSccpDeviceTableData('get_sccpdevice_byid', array("id" => $val));
     $show_buttons = $dev_schema[0]['buttons'];
