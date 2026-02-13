@@ -198,15 +198,18 @@ class aminterface
                 $this->_errorException("Read waittime: " . ($this->_config['timeout'] ?? 30) . " exceeded (timeout).\n");
                 return false;
             }
-            if ($this->eventListIsCompleted[$this->_lastActionId]) {
+            if (isset($this->eventListIsCompleted[$this->_lastActionId]) && $this->eventListIsCompleted[$this->_lastActionId]) {
                 $response = $this->_incomingMsgObjectList[$this->_lastActionId];
                 // need to test that the list was successfully completed here
-                $allReceived = $response->getClosingEvent()
-                                ->listCorrectlyReceived($this->_incomingRawMessage[$this->_lastActionId],
-                                $response->getCountOfEvents());
+                $closingEvent = $response->getClosingEvent();
+                $allReceived = false;
+                if ($closingEvent !== null) {
+                    $allReceived = $closingEvent->listCorrectlyReceived($this->_incomingRawMessage[$this->_lastActionId],
+                                    $response->getCountOfEvents());
+                }
                 // now tidy up removing any temp variables or objects
                 $response->removeClosingEvent();
-                unset($_incomingRawMessage[$this->_lastActionId]);
+                unset($this->_incomingRawMessage[$this->_lastActionId]);
                 unset($this->_incomingMsgObjectList[$this->_lastActionId]);
                 unset($this->_lastActionId);
                 if ($allReceived) {
