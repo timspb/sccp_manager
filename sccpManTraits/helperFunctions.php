@@ -313,7 +313,7 @@ trait helperFunctions {
 
                 $remoteFileName = ".sccp_manager_remap_probe_sentinel_temp".mt_rand(0, 9999999).".tlzz";
                 $remoteFileContent = "# This is a test file created by Sccp_Manager. It can be deleted without impact";
-                $testFtpDir = "{$this->sccpvalues['tftp_path']['data'] ?? '/var/lib/tftp'}/settings";
+                $testFtpDir = ($this->sccpvalues['tftp_path']['data'] ?? '/var/lib/tftp') . '/settings';
 
                 // write a sentinel to a tftp subdirectory to see if mapping is working
 
