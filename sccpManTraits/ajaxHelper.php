@@ -371,6 +371,13 @@ trait ajaxHelper {
                             $dev_id['button'] = implode(';', $parts);
                         }
                     }
+                    // When description is empty (e.g. profileid=1 and user has no description), show device's own Device Label
+                    if (trim((string)($dev_id['description'] ?? '')) === '') {
+                        $row = $this->dbinterface->getSccpDeviceTableData('get_sccpdevice_byid', array('id' => $dev_id['name']));
+                        if (!empty($row['description'])) {
+                            $dev_id['description'] = $row['description'];
+                        }
+                    }
                 }
                 unset($dev_id);
 
