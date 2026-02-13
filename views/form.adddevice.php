@@ -50,11 +50,14 @@ if (!empty($_REQUEST['id'])) {
                         break;
                     }
                     $def_val[$key] = array("keyword" => $key, "data" => $val, "seq" => "99");
-                    // Need to assign defaultLine as not set in the db.
-                    $def_val['defaultLine'] = $this->dbinterface->getSccpDeviceTableData('getDefaultLine', array('id' => $dev_id))['name'];
                     break;
             }
         }
+    }
+    // Default line for this device (not stored in sccpdevice, derived from sccpbuttonconfig).
+    if ($dev_id !== null) {
+        $defaultLineRow = $this->dbinterface->getSccpDeviceTableData('getDefaultLine', array('id' => $dev_id));
+        $def_val['defaultLine'] = (is_array($defaultLineRow) && isset($defaultLineRow['name'])) ? $defaultLineRow['name'] : '';
     }
 }
 
