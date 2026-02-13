@@ -47,13 +47,13 @@ class extconfigs
                 $haveDstNow = date('I');
                 $futureDateArray = array(2,4,6,8);
                 foreach ($futureDateArray as $numMonths) {
-                    $futureDate = (new \DateTime(null,new \DateTimeZone($index)))->modify("+{$numMonths} months");
+                    $futureDate = (new \DateTime('now',new \DateTimeZone($index)))->modify("+{$numMonths} months");
                     if ($futureDate->format('I') != $haveDstNow) {
                         $usesDaylight = true;
                         break;
                     };
                 }
-                $thisTzOffset = (new \DateTime(null, new \DateTimeZone($index)))->getOffset();
+                $thisTzOffset = (new \DateTime('now', new \DateTimeZone($index)))->getOffset();
 
                 // Now look for a match in cisco_tz_array based on offset and DST
                 // First correct offset if we have DST now as cisco offsets are
