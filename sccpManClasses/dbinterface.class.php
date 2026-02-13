@@ -112,11 +112,11 @@ class dbinterface
                 } elseif (!empty($data['type'])) {
                     switch ($data['type']) {
                         case "cisco-sip":
-                            $stmts = $this->db->prepare("SELECT {$fld} FROM sccpdeviceconfig WHERE TYPE LIKE '%-sip' ORDER BY name");
+                            $stmts = $this->db->prepare("SELECT {$fld} FROM sccpdeviceconfig WHERE type LIKE '%-sip' ORDER BY name");
                             break;
                         case "cisco":      // Fall through to default intentionally
                         default:
-                            $stmts = $this->db->prepare("SELECT {$fld} FROM sccpdeviceconfig WHERE TYPE not LIKE '%-sip' ORDER BY name");
+                            $stmts = $this->db->prepare("SELECT {$fld} FROM sccpdeviceconfig WHERE type not LIKE '%-sip' ORDER BY name");
                             break;
                     }
                 } else {      //no filter and no name provided - return all
