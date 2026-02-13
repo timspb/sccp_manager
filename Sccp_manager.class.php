@@ -746,6 +746,7 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                     'tftp_firmware_path' => $nonEmpty('tftp_firmware_path', '/firmware'),
                     'tftp_dialplan_path' => $nonEmpty('tftp_dialplan_path', '/dialplan'),
                     'tftp_softkey_path' => $nonEmpty('tftp_softkey_path', '/softkey'),
+                    'tftp_ringtones_path' => $nonEmpty('tftp_ringtones_path', '/ringtones'),
                     'tftp_countries_path' => $nonEmpty('tftp_countries_path', '/locales/countries')
                   );
 

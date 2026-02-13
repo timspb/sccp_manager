@@ -679,11 +679,33 @@ trait ajaxHelper {
                 $srcDir['country'] = $provisionerUrl . (string)($result[0]->DirectoryPath ?? '');
                 $dstDir['country'] = ($this->sccppath['tftp_countries_path'] ?? '') . "/{$countryName}";
                 break;
+            case 'settings':
+                $settingsDir = $tftpBootXml->xpath("//Directory[@name='settings']");
+                if (empty($settingsDir)) {
+                    return array('status' => false, 'message' => 'Settings directory not found in master file list', 'reload' => false);
+                }
+                $filesToGet['settings'] = $this->normalizeFileNameList($settingsDir[0]->FileName);
+                $totalFiles += count($filesToGet['settings']);
+                $srcDir['settings'] = $provisionerUrl . (string)($settingsDir[0]->DirectoryPath ?? '');
+                $dstDir['settings'] = $this->sccppath['tftp_store_path'] ?? ($tftpPath . '/settings');
+                $msg = _('Settings files have been successfully downloaded');
+                break;
+            case 'ringtones':
+                $ringtonesDir = $tftpBootXml->xpath("//Directory[@name='ringtones']");
+                if (empty($ringtonesDir)) {
+                    return array('status' => false, 'message' => 'Ringtones directory not found in master file list', 'reload' => false);
+                }
+                $filesToGet['ringtones'] = $this->normalizeFileNameList($ringtonesDir[0]->FileName);
+                $totalFiles += count($filesToGet['ringtones']);
+                $srcDir['ringtones'] = $provisionerUrl . (string)($ringtonesDir[0]->DirectoryPath ?? '');
+                $dstDir['ringtones'] = $this->sccppath['tftp_ringtones_path'] ?? (rtrim($tftpPath, '/') . '/ringtones');
+                $msg = _('Ringtones have been successfully downloaded');
+                break;
             default:
                 return array('status' => false, 'message' => 'Invalid request', 'reload' => false);
         }
         $filesRetrieved = 0;
-        foreach (array('language', 'country', 'firmware') as $section) {
+        foreach (array('language', 'country', 'firmware', 'settings', 'ringtones') as $section) {
             if (!isset($dstDir[$section], $filesToGet[$section], $srcDir[$section])) {
                 continue;
             }
