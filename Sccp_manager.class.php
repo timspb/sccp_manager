@@ -162,7 +162,12 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
         } catch (\Throwable $e) {
             $this->class_error = array('Sccp_manager load' => $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
             if (function_exists('freepbx_log')) {
-                freepbx_log(\FreePBX::Log()->LOG_ERROR, 'Sccp_manager: ' . $e->getMessage(), $e->getFile(), $e->getLine());
+                if (class_exists('\FreePBX') && method_exists('\FreePBX', 'Log')) {
+                    freepbx_log(\FreePBX::Log()->LOG_ERROR, 'Sccp_manager: ' . $e->getMessage(), $e->getFile(), $e->getLine());
+                } else {
+                    // Fallback to standard PHP error logging during installation
+                    error_log('Sccp_manager: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+                }
             }
             throw $e;
         }
