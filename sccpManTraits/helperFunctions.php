@@ -461,10 +461,19 @@ trait helperFunctions {
      * Tries: (1) original chan-sccp method file_get_contents(github raw URL), (2) fetchUrlToFile (cURL/raw.githubusercontent.com), (3) bundled contrib/masterFilesStructure.xml.
      */
     public function getFileListFromProvisioner(string $tftpRootPath): bool {
+        $tftpRootPath = rtrim($tftpRootPath, '/\\');
         $provisionerUrl = 'https://github.com/dkgroot/provision_sccp/raw/master/';
         $url = $provisionerUrl . 'tools/tftpbootFiles.xml';
         $dest = $tftpRootPath . '/masterFilesStructure.xml';
         $bundled = dirname(__DIR__) . '/contrib/masterFilesStructure.xml';
+
+        if (!is_dir($tftpRootPath)) {
+            return false;
+        }
+        if (!is_writable($tftpRootPath)) {
+            error_log('SCCP Manager: TFTP root is not writable: ' . $tftpRootPath . ' — fix: sudo chown -R www-data:www-data ' . $tftpRootPath . ' (or the user that runs the web server)');
+            return false;
+        }
 
         // 1) Original method: file_get_contents + file_put_contents (as in chan-sccp/sccp_manager)
         $content = @file_get_contents($url, false, $this->getHttpStreamContext());

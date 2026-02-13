@@ -201,7 +201,7 @@ include($amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/views/getFileModa
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="gridSystemModalLabel"><?php echo _('Modal title');?></h4>
+                <h4 class="modal-title" id="gridSystemModalLabel"><?php echo _('SCCP Model information');?></h4>
             </div>
             <div class="modal-body">
                 <div class="element-container"><div class="row"> <div class="form-group"><div class="col-md-3">

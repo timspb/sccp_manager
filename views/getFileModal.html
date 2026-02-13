@@ -10,10 +10,8 @@
                 <div class="element-container">
                     <div class="row">
                         <div class="col-md-12">
-                            <?php echo "Sccp_Manager will try to download {$requestType} files from Provision_Sccp on GitHub.<br>
-                                        This site, dkgroot/provision_sccp, is unrelated to Sccp_Manager, and the files found cannot be warrantied<br>
-                                        If you accept this, please select the {$requestType} that you want to try to get files for and then Get Files From Provisioner<br><br>
-                                        Please be patient - this may take some time depending on your internet link<br><br>" ?>
+                            <p><?php echo sprintf(_('SCCP Manager will download %s files from dkgroot/provision_sccp on GitHub. That site is unrelated to SCCP Manager; files are not warranted.'), htmlspecialchars($requestType)); ?></p>
+                            <p><?php echo sprintf(_('Select the %s to fetch, then click Get Files from Provisioner. This may take a while depending on your connection.'), htmlspecialchars($requestType)); ?></p>
                         </div>
                     </div>
                 </div>
@@ -68,18 +66,19 @@
 <!--End modal include-->
 <!--Start progress modal include-->
 <div id="pleaseWaitDialog" class="modal" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-sm">
         <div class="modal-content">
-            <div class="modal-header">
-                <h1>Getting files .....please wait</h1>
-            </div>
-            <div class="modal-body">
-                <div class="progress">
-                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated active" role="progressbar" style="width:0%">
-                    </div>
+            <div class="modal-body text-center" style="padding: 28px 24px;">
+                <p style="margin-bottom: 20px;">
+                    <i class="fa fa-cloud-download fa-3x text-primary" aria-hidden="true"></i>
+                </p>
+                <h4 class="modal-title" style="margin-bottom: 8px;"><?php echo _('Getting files…');?></h4>
+                <p class="text-muted small" style="margin-bottom: 20px;"><?php echo _('Please wait.');?></p>
+                <div class="progress" style="height: 6px;">
+                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated active" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
             </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+        </div>
+    </div>
+</div>
 <!--End progress modal include-->

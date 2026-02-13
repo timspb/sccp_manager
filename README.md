@@ -48,6 +48,8 @@ git clone https://github.com/chan-sccp/sccp_manager.git
 fwconsole ma install sccp_manager
 ```
 
+**Detailed installation guides (RU):** [contrib/INSTALL-chan-sccp.md](contrib/INSTALL-chan-sccp.md) (chan_sccp driver), [contrib/INSTALL-sccp_manager.md](contrib/INSTALL-sccp_manager.md) (this module).
+
 ## Update
 
 ```bash

@@ -85,7 +85,7 @@ $keynamearray = array('onhook'    => array('sname' => 'ONHOOK', 'name' =>'Displa
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="gridSystemModalLabel">Add New KeySet</h4>
+                <h4 class="modal-title" id="gridSystemModalLabel"><?php echo _('Add New KeySet'); ?></h4>
             </div>
             <div class="modal-body">
                 <style type="text/css">
@@ -95,7 +95,7 @@ $keynamearray = array('onhook'    => array('sname' => 'ONHOOK', 'name' =>'Displa
                     <div class="row">
                         <div class="form-group">
                             <div class="col-md-3">
-                                <label class="control-label" for="new_keysetname">Name Keyset</label>
+                                <label class="control-label" for="new_keysetname"><?php echo _('Name Keyset'); ?></label>
                                 <i class="fa fa-question-circle fpbx-help-icon" data-for="new_devmodel"></i>
                             </div>
                             <div class="col-md-9">
@@ -105,7 +105,7 @@ $keynamearray = array('onhook'    => array('sname' => 'ONHOOK', 'name' =>'Displa
                     </div>
                     <div class="row">
                         <div class="col-md-12">
-                            <span id="new_devmodel-help" class="help-block fpbx-help-block">Max length 15 letters or numbers without spaces</span>
+                            <span id="new_devmodel-help" class="help-block fpbx-help-block"><?php echo _('Max length 15 letters or numbers without spaces'); ?></span>
                         </div>
                     </div>
                 </div>
@@ -157,8 +157,8 @@ foreach ($keysetarray as $key => $value) {
 
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary sccp_update" data-id="keyset_add" data-mode="new" id="keyset_add" data-dismiss="modal">Save</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo _('Close'); ?></button>
+                <button type="button" class="btn btn-primary sccp_update" data-id="keyset_add" data-mode="new" id="keyset_add" data-dismiss="modal"><?php echo _('Save'); ?></button>
             </div>
         </div>
     </div>
