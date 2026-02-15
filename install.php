@@ -345,8 +345,9 @@ function CheckPermissions()
 {
     global $amp_conf;
     outn("<li>" . _("Checking Filesystem Permissions") . "</li>");
-    $dst = $amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/views';
-    if (fileowner($amp_conf['AMPWEBROOT']) != fileowner($dst)) {
+    $ampWebroot = (string)($amp_conf['AMPWEBROOT'] ?? '');
+    $dst = $ampWebroot . '/admin/modules/sccp_manager/views';
+    if (fileowner($ampWebroot) != fileowner($dst)) {
         die_freepbx('Please (re-)check permissions by running "amportal chown. Installation Failed"');
     }
 }
@@ -912,6 +913,7 @@ function createBackUpConfig()
     $backup_files = array('extensions','extconfig','res_mysql', 'res_config_mysql','sccp','sccp_hardware','sccp_extensions');
     $backup_ext = array('_custom.conf', '_additional.conf','.conf');
     $dir = $cnf_int->get('ASTETCDIR');
+    $dir = is_array($dir) ? (string)reset($dir) : (string)$dir;
 
     $fsql = $dir.'/sccp_backup_'.date("Ymd").'.sql';
     $dbName = (string)($amp_conf['AMPDBNAME'] ?? '');
@@ -953,6 +955,7 @@ function RenameConfig()
     $rename_files = array('sccp_hardware','sccp_extensions');
     $rename_ext = array('_custom.conf', '_additional.conf','.conf');
     $dir = $cnf_int->get('ASTETCDIR');
+    $dir = is_array($dir) ? (string)reset($dir) : (string)$dir;
     foreach ($rename_files as $file) {
         foreach ($rename_ext as $b_ext) {
             if (file_exists($dir . '/'.$file . $b_ext)) {
@@ -972,11 +975,13 @@ function Setup_RealTime()
 
     // Define required default settings based on FreePBX and system settings
     $dir = $cnf_int->get('ASTETCDIR');
+    $dir = is_array($dir) ? (string)reset($dir) : (string)$dir;
     $sys_mysql_socket = ini_get('pdo_mysql.default_socket');
-    $def_bd_config = array('dbhost' => $amp_conf['AMPDBHOST'],
-                            'dbname' => $amp_conf['AMPDBNAME'],
-                            'dbuser' => $amp_conf['AMPDBUSER'],
-                            'dbpass' => $amp_conf['AMPDBPASS'],
+    $def_bd_config = array(
+                            'dbhost' => (string)($amp_conf['AMPDBHOST'] ?? ''),
+                            'dbname' => (string)($amp_conf['AMPDBNAME'] ?? ''),
+                            'dbuser' => (string)($amp_conf['AMPDBUSER'] ?? ''),
+                            'dbpass' => (string)($amp_conf['AMPDBPASS'] ?? ''),
                             'dbport' => '3306',
                             'dbsock' => '/var/lib/mysql/mysql.sock',
                             'dbcharset'=>'utf8'
@@ -986,7 +991,7 @@ function Setup_RealTime()
             $def_bd_config['dbsock'] = $sys_mysql_socket;
         }
     }
-    $def_bd_section = $amp_conf['AMPDBNAME'];
+    $def_bd_section = (string)($amp_conf['AMPDBNAME'] ?? '');
     $def_ext_config = array('sccpdevice' => "mysql,{$def_bd_section},sccpdeviceconfig",'sccpline' => "mysql,{$def_bd_section},sccplineconfig");
 
     // Check extconfig file for correct connector values
@@ -1058,8 +1063,9 @@ function addDriver($sccp_compatible) {
     global $amp_conf;
     global $cnf_int;
     outn("<li>" . _("Adding driver ...") . "</li>");
-    $file = $amp_conf['AMPWEBROOT'] . '/admin/modules/core/functions.inc/drivers/Sccp.class.php';
-    $sccpModulePath = $amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/sccpManClasses/Sccp.class.php.v' . $sccp_compatible;
+    $ampWebroot = (string)($amp_conf['AMPWEBROOT'] ?? '');
+    $file = $ampWebroot . '/admin/modules/core/functions.inc/drivers/Sccp.class.php';
+    $sccpModulePath = $ampWebroot . '/admin/modules/sccp_manager/sccpManClasses/Sccp.class.php.v' . $sccp_compatible;
     $contents = "<?php include " . var_export($sccpModulePath, true) . "; ?>";
     file_put_contents($file, $contents);
 }
@@ -1072,13 +1078,15 @@ function checkTftpServer() {
     global $thisInstaller;
     global $amp_conf;
     $confDir = $cnf_int->get('ASTETCDIR');
+    $confDir = is_array($confDir) ? (string)reset($confDir) : (string)$confDir;
+    $ampWebroot = (string)($amp_conf['AMPWEBROOT'] ?? '');
     $tftpRootPath = "";
     // put the rewrite rules into the required location
     if (file_exists("{$confDir}/sccpManagerRewrite.rules")) {
         rename("{$confDir}/sccpManagerRewrite.rules", "{$confDir}/sccpManagerRewrite.rules.bu");
     }
-    copy($amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/conf/mappingRulesHeader',"{$confDir}/sccpManagerRewrite.rules");
-    file_put_contents("{$confDir}/sccpManagerRewrite.rules", file_get_contents($amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/contrib/rewrite.rules'), FILE_APPEND);
+    copy($ampWebroot . '/admin/modules/sccp_manager/conf/mappingRulesHeader', "{$confDir}/sccpManagerRewrite.rules");
+    file_put_contents("{$confDir}/sccpManagerRewrite.rules", file_get_contents($ampWebroot . '/admin/modules/sccp_manager/contrib/rewrite.rules'), FILE_APPEND);
     file_put_contents("{$confDir}/sccpManagerRewrite.rules", "\n# Do not disable this rule - this is required by sccp_manager\nri ^(.+\.tlzz)?$ settings/\\1", FILE_APPEND);
     // TODO: add option to use external server
     $remoteFileName = ".sccp_manager_installer_probe_sentinel_temp".mt_rand(0, 9999999);
@@ -1099,7 +1107,7 @@ function checkTftpServer() {
             if ($remoteFileContent == $thisInstaller->tftpReadTestFile($remoteFileName)) {
                 $tftpRootPath = $dirToTest;
                 outn("<li>" . _("Found ftp root dir at {$tftpRootPath}") . "</li>");
-                if ($settingsFromDb['tftp_path']['data'] != $tftpRootPath) {
+                if ((string)($settingsFromDb['tftp_path']['data'] ?? '') != $tftpRootPath) {
                     $settingsFromDb["tftp_path"] = array( 'keyword' => 'tftp_path', 'seq' => 2, 'type' => 0, 'data' => $tftpRootPath, 'systemdefault' => '');
                 }
                 // Found sentinel file. Remove it and exit loop
@@ -1130,7 +1138,12 @@ function checkTftpServer() {
     $settingsFromDb = $extconfigs->updateTftpStructure($settingsFromDb);
 
     foreach ($settingsFromDb as $settingToSave) {
-        $sql = "REPLACE INTO sccpsettings (keyword, data, seq, type, systemdefault) VALUES ('{$settingToSave['keyword']}', '{$settingToSave['data']}', {$settingToSave['seq']}, {$settingToSave['type']}, '{$settingToSave['systemdefault']}')";
+        $kw = (string)($settingToSave['keyword'] ?? '');
+        $data = (string)($settingToSave['data'] ?? '');
+        $seq = (int)($settingToSave['seq'] ?? 0);
+        $typ = (int)($settingToSave['type'] ?? 0);
+        $sysdef = (string)($settingToSave['systemdefault'] ?? '');
+        $sql = "REPLACE INTO sccpsettings (keyword, data, seq, type, systemdefault) VALUES (" . $db->quote($kw) . ", " . $db->quote($data) . ", {$seq}, {$typ}, " . $db->quote($sysdef) . ")";
         $results = $db->query($sql);
         if ($results === false) {
             die_freepbx(_("Error updating sccpsettings. $sql"));
@@ -1152,7 +1165,7 @@ function getMasterFileList(string $tftpRootPath) {
     if (!$thisInstaller->getFileListFromProvisioner($tftpRootPath)) {
         outn("<li>" . _("Unable to fetch master file list from provisioner, installing local copy ...") . "</li>");
         // Cannot get file from internet, so use copy with this dist which may be older.
-        if (!copy($amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/contrib/masterFilesStructure.xml',"{$tftpRootPath}/masterFilesStructure.xml")) {
+        if (!copy((string)($amp_conf['AMPWEBROOT'] ?? '') . '/admin/modules/sccp_manager/contrib/masterFilesStructure.xml', "{$tftpRootPath}/masterFilesStructure.xml")) {
             return false;
         };
         return true;
@@ -1178,11 +1191,11 @@ function cleanUpSccpSettings() {
     if (!isset($settingsFromDb['sccp_compatible']['data'])) {
         outn(_("No previous version found "));
     } else {
-    outn(_("Found DB Schema : {$settingsFromDb['sccp_compatible']['data']}"));
+    outn(_("Found DB Schema : " . (string)($settingsFromDb['sccp_compatible']['data'] ?? '')));
     }
     // Check that required settings are initialised and update db and $settingsFromDb if not
     // Clean up sccpsettings to remove legacy values.
-    $xml_vars = $amp_conf['AMPWEBROOT'] . "/admin/modules/sccp_manager/conf/sccpgeneral.xml.v{$sccp_compatible}";
+    $xml_vars = (string)($amp_conf['AMPWEBROOT'] ?? '') . "/admin/modules/sccp_manager/conf/sccpgeneral.xml.v{$sccp_compatible}";
     $thisInstaller->xml_data = simplexml_load_file($xml_vars);
     $thisInstaller->initVarfromXml();
     foreach ( array_diff_key($settingsFromDb,$thisInstaller->sccpvalues) as $key => $valueArray) {
@@ -1272,23 +1285,24 @@ function cleanUpSccpSettings() {
     }
     $count = 0;
     foreach ($rowsToTest as $key => $valArr) {
-        if (empty($settingsFromDb[$key]['data'])) {
+        $dataVal = is_array($settingsFromDb[$key]['data'] ?? null) ? '' : (string)($settingsFromDb[$key]['data'] ?? '');
+        if ($dataVal === '') {
             continue;
         }
-        if (in_array("'{$settingsFromDb[$key]['data']}'", $valArr, true)) {
+        if (in_array("'{$dataVal}'", $valArr, true)) {
             continue;
         }
         // clear site setting so that will return to system defaults.
         // Try to convert based on change from on/off to yes/no.
-        if (in_array($settingsFromDb[$key]['data'], array('on','off'), true)) {
+        if (in_array($dataVal, array('on','off'), true)) {
             if (in_array("'yes'", $valArr, true)) {
-                $settingsFromDb[$key]['data'] = ($settingsFromDb[$key]['data'] == 'on') ? 'yes' : 'no';
+                $settingsFromDb[$key]['data'] = ($dataVal === 'on') ? 'yes' : 'no';
                 continue;
             }
         }
         // Test for case
-        if (in_array("'" . strtolower($settingsFromDb[$key]['data'] ?? '') . "'", $valArr, true)) {
-            $settingsFromDb[$key]['data'] = strtolower($settingsFromDb[$key]['data'] ?? '');
+        if (in_array("'" . strtolower($dataVal) . "'", $valArr, true)) {
+            $settingsFromDb[$key]['data'] = strtolower($dataVal);
             continue;
         }
         // No easy choices so reset to system default
@@ -1300,21 +1314,20 @@ function cleanUpSccpSettings() {
     $sql = "TRUNCATE sccpsettings";
     $results = $db->query($sql);
     foreach ( $settingsFromDb as $key =>$valueArray ) {
-        $sql = "REPLACE INTO sccpsettings
-                (keyword, seq, type, data, systemdefault)
-                    VALUES
-                ( '{$settingsFromDb[$key]['keyword']}',
-                  {$settingsFromDb[$key]['seq']},
-                  {$settingsFromDb[$key]['type']},
-                  '{$settingsFromDb[$key]['data']}',
-                  '{$settingsFromDb[$key]['systemdefault']}'
-                )";
+        $kw = (string)($settingsFromDb[$key]['keyword'] ?? '');
+        $seq = (int)($settingsFromDb[$key]['seq'] ?? 0);
+        $typ = (int)($settingsFromDb[$key]['type'] ?? 0);
+        $data = is_array($settingsFromDb[$key]['data'] ?? null) ? '' : (string)($settingsFromDb[$key]['data'] ?? '');
+        $sysdef = (string)($settingsFromDb[$key]['systemdefault'] ?? '');
+        $sql = "REPLACE INTO sccpsettings (keyword, seq, type, data, systemdefault) VALUES (" . $db->quote($kw) . ", {$seq}, {$typ}, " . $db->quote($data) . ", " . $db->quote($sysdef) . ")";
         $results = $db->query($sql);
     }
     // Need to load any existing sccp.conf so that retain softkeys section if exists.
     $sccp_conf_init = $thisInstaller->initialiseConfInit();
+    $astEtcDir = $cnf_int->get('ASTETCDIR');
+    $astEtcDir = is_array($astEtcDir) ? (string)reset($astEtcDir) : (string)$astEtcDir;
     // Now correct sccp.conf to replace any illegal settings passing $sccp_conf_init
-    $thisInstaller->createDefaultSccpConfig($settingsFromDb, $cnf_int->get('ASTETCDIR'), $sccp_conf_init);
+    $thisInstaller->createDefaultSccpConfig($settingsFromDb, $astEtcDir, $sccp_conf_init);
 
     // have to correct prior verion sccpline lists for allow/disallow and deny permit. Prior
     // versions used csl, but chan-sccp expects ; separated lists when returned by db.
