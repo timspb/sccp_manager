@@ -85,9 +85,9 @@
 			<field name="directrtp" type="string" notnull="false"/>
 			<field name="softkeyset" type="string" length="100" default="softkeyset" notnull="false"/>
 			<field name="audio_tos" type="string" length="11" default="0xB8" notnull="false"/>
-			<field name="audio_cos" type="string" length="1" default="6" notnull="false"/>
+			<field name="audio_cos" type="string" length="11" default="0x6" notnull="false"/>
 			<field name="video_tos" type="string" length="11" default="0x88" notnull="false"/>
-			<field name="video_cos" type="string" length="1" default="5" notnull="false"/>
+			<field name="video_cos" type="string" length="11" default="0x5" notnull="false"/>
 			<field name="conf_allow" type="string" default="on"/>
 			<field name="conf_play_general_announce" type="string" length="3" default="on" notnull="false"/>
 			<field name="conf_play_part_announce" type="string" default="on"/>

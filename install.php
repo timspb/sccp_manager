@@ -62,6 +62,7 @@ RenameConfig();
 
 $db_config   = Get_DB_config($sccp_compatible);
 InstallDB_updateSchema($db_config);
+InstallDB_widenCosColumns();
 
 cleanUpSccpSettings();
 
@@ -721,6 +722,28 @@ function InstallDB_updateSchema($db_config)
         die_freepbx("Can not create sccpdevmodel table, error: " . (is_array($err) ? implode(' ', $err) : 'unknown'));
     }
     return;
+}
+
+/**
+ * Widen audio_cos and video_cos from VARCHAR(1) to VARCHAR(11) if needed (fix "Data truncated" when values like 0x6 are stored).
+ */
+function InstallDB_widenCosColumns()
+{
+    global $db;
+    $cols = array('audio_cos' => "VARCHAR(11) NOT NULL DEFAULT '0x6'", 'video_cos' => "VARCHAR(11) NOT NULL DEFAULT '0x5'");
+    foreach ($cols as $col => $def) {
+        try {
+            $stmt = $db->prepare("DESCRIBE sccpdevice");
+            $stmt->execute();
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC|\PDO::FETCH_UNIQUE);
+            if (isset($rows[$col]) && preg_match('/varchar\s*\(\s*1\s*\)/i', (string)($rows[$col]['Type'] ?? ''))) {
+                $db->exec("ALTER TABLE sccpdevice MODIFY COLUMN `{$col}` {$def}");
+                outn("<li>" . _("Widened sccpdevice.{$col} to VARCHAR(11)") . "</li>");
+            }
+        } catch (\Throwable $e) {
+            // table or column may not exist yet
+        }
+    }
 }
 
 function InstallDB_createButtonConfigTrigger()
