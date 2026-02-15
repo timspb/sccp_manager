@@ -13,7 +13,7 @@
 | Component | Version |
 |-----------|---------|
 | FreePBX | 16 or 17 |
-| PHP | 8.3+ |
+| PHP | 8.2+ |
 | Asterisk | 21 / 22 / 23 |
 | chan-sccp | 4.3.5+ |
 | PHP extension | zip |
@@ -21,7 +21,7 @@
 A **patched or fixed chan-sccp build** may be required for full compatibility with this module and your Asterisk/FreePBX setup; the stock distro package is not always sufficient. See [chan-sccp](https://github.com/chan-sccp/chan-sccp) releases or community builds.
 
 ```bash
-apt-get install php8.3-zip
+apt-get install php-zip   # or php8.2-zip / php8.3-zip to match your PHP version
 ```
 
 **TFTP** (e.g. `/tftpboot`) and **DHCP** required. See [chan-sccp Wiki](https://github.com/chan-sccp/chan-sccp/wiki).

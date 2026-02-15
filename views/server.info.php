@@ -130,7 +130,7 @@ if (empty($ast_realtime)) {
     $info['RealTime'] = array('Version' => $rt_sccp, 'about' => $rt_info);
 }
 $phpVer = phpversion();
-$info['PHP'] = array('Version' => $phpVer, 'about' => version_compare($phpVer, '8.3.0', '>=') ? 'OK' : 'PHP 8.3+ preferred for FreePBX 16/17');
+$info['PHP'] = array('Version' => $phpVer, 'about' => version_compare($phpVer, '8.2.0', '>=') ? 'OK' : 'PHP 8.2+ required for FreePBX 16/17');
 $mariaDbInfo = exec('mysql -V');
 $mariaParts = $mariaDbInfo ? explode(' ', $mariaDbInfo) : array();
 $info['MariaDb'] = array('Version' => isset($mariaParts[3]) ? $mariaParts[3] : 'n/a', 'about' => $mariaDbInfo ?: 'mysql not in PATH');

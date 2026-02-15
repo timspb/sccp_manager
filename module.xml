@@ -50,7 +50,7 @@
 	<location>https://github.com/chan-sccp/sccp_manager</location>
 	<depends>
 		<version>16</version>
-		<phpversion>8.3</phpversion>
+		<phpversion>8.2</phpversion>
 		<phpcomponent>zip</phpcomponent>
 	</depends>
 	<supported>
