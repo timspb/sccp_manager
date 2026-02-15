@@ -888,12 +888,14 @@ function installDbPopulateSccpline() {
     $linesToCreate = array_diff_assoc($freePbxExts, $sccpExts);
 
     foreach ($linesToCreate as $key => $valArr) {
+        $accountcode = is_array($valArr['accountcode'] ?? null) ? '' : (string)($valArr['accountcode'] ?? '');
+        $label = is_array($valArr['label'] ?? null) ? '' : (string)($valArr['label'] ?? '');
+        $description = $label . ' <' . $key . '>';
         $stmt = $db->prepare("INSERT into sccpline (name, accountcode, description, label) VALUES (:name, :accountcode, :description, :label)");
-        $stmt->bindParam(':name',$key,\PDO::PARAM_STR);
-        $description = "{$valArr['label']} <{$key}>";
-        $stmt->bindParam(':accountcode',$valArr['accountcode'],\PDO::PARAM_STR);
-        $stmt->bindParam(':description',$description,\PDO::PARAM_STR);
-        $stmt->bindParam(':label',$valArr['label'],\PDO::PARAM_STR);
+        $stmt->bindParam(':name', $key, \PDO::PARAM_STR);
+        $stmt->bindParam(':accountcode', $accountcode, \PDO::PARAM_STR);
+        $stmt->bindParam(':description', $description, \PDO::PARAM_STR);
+        $stmt->bindParam(':label', $label, \PDO::PARAM_STR);
         if (!$stmt->execute()) {
             $err = $stmt->errorInfo();
             die_freepbx(sprintf(_("Error inserting into sccpline. Error was: %s "), $err[2] ?? 'unknown'));
