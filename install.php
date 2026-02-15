@@ -789,7 +789,7 @@ function InstallDB_updateDBVer($sccp_compatible)
     $results = $db->query($sql);
     if ($results === false) {
         $err = $db->errorInfo();
-        die_freepbx(sprintf(_("Error updating sccpsettings. Command was: %s; error was: %s "), $sql, $err[2] ?? 'unknown'));
+        die_freepbx(sprintf(_("Error updating sccpsettings. Command was: %s; error was: %s "), (string)$sql, (string)($err[2] ?? 'unknown')));
     }
     return true;
 }
@@ -847,7 +847,7 @@ function InstallDbCreateViews($sccp_compatible)
     $stmt = $db->prepare($sql);
     $result = $stmt->execute();
     if (!$result) {
-        die_freepbx(sprintf(_("Error updating sccpdeviceconfig view. Command was: %s"), $sql));
+        die_freepbx(sprintf(_("Error updating sccpdeviceconfig view. Command was: %s"), (string)$sql));
     }
 
     outn("<li>" . _("(Re)Create sccplineconfig view") . "</li>");
@@ -867,7 +867,7 @@ function InstallDbCreateViews($sccp_compatible)
     $stmt = $db->prepare($sql);
     $result = $stmt->execute();
     if (!$result) {
-        die_freepbx(sprintf(_("Error updating sccplineconfig view. Command was: %s"), $sql));
+        die_freepbx(sprintf(_("Error updating sccplineconfig view. Command was: %s"), (string)$sql));
     }
     return true;
 }
@@ -916,10 +916,11 @@ function createBackUpConfig()
     $dir = is_array($dir) ? (string)reset($dir) : (string)$dir;
 
     $fsql = $dir.'/sccp_backup_'.date("Ymd").'.sql';
-    $dbName = (string)($amp_conf['AMPDBNAME'] ?? '');
-    $dbPass = (string)($amp_conf['AMPDBPASS'] ?? '');
-    $dbUser = (string)($amp_conf['AMPDBUSER'] ?? '');
-    $result = exec('mysqldump '.$dbName.' --password='.$dbPass.' --user='.$dbUser.' --single-transaction >'.$fsql);
+    $dbName = is_array($amp_conf['AMPDBNAME'] ?? null) ? (string)reset($amp_conf['AMPDBNAME']) : (string)($amp_conf['AMPDBNAME'] ?? '');
+    $dbPass = is_array($amp_conf['AMPDBPASS'] ?? null) ? (string)reset($amp_conf['AMPDBPASS']) : (string)($amp_conf['AMPDBPASS'] ?? '');
+    $dbUser = is_array($amp_conf['AMPDBUSER'] ?? null) ? (string)reset($amp_conf['AMPDBUSER']) : (string)($amp_conf['AMPDBUSER'] ?? '');
+    $cmd = 'mysqldump --user=' . $dbUser . ' --password=' . $dbPass . ' ' . $dbName . ' --single-transaction >' . $fsql;
+    $result = exec($cmd);
 
     try {
         $zip = new \ZipArchive();
