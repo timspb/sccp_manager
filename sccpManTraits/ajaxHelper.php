@@ -48,7 +48,7 @@ trait ajaxHelper {
     public function ajaxHandler() {
         $request = $_REQUEST;
         $msg = array();
-        $cmd_id = $request['command'];
+        $cmd_id = $request['command'] ?? '';
         switch ($cmd_id) {
             case 'savesettings':
                 // Consolidate this into a separate method to improve legibility
@@ -181,7 +181,7 @@ trait ajaxHelper {
                     }
                 }
                 $res = $this->updateSccpButtons($hw_list);
-                $msg .= $res['Response'] . (empty($res['data']) ? '' : ' raw data: ' . $res['data'] . ' ');
+                $msg .= ($res['Response'] ?? '') . (empty($res['data'] ?? '') ? '' : ' raw data: ' . ($res['data'] ?? '') . ' ');
                 return array('status' => true, 'message' => 'Update Buttons Labels Complete: ' . $msg, 'reload' => false, 'table_reload' => true);
             case 'model_add':
                 $save_settings = array();
@@ -227,11 +227,12 @@ trait ajaxHelper {
                 }
                 break;
             case 'getDeviceModel':
-                switch ($request['type']) {
+                $req_type = $request['type'] ?? '';
+                switch ($req_type) {
                     case 'all':
                     case 'extension':
                     case 'enabled':
-                        $devices = $this->getSccpModelInformation($request['type'], $validate = true);
+                        $devices = $this->getSccpModelInformation($req_type, $validate = true);
                         break;
                 }
                 if (empty($devices)) {
@@ -324,7 +325,7 @@ trait ajaxHelper {
                 return $result;
                 break;
             case 'getExtensionGrid':
-                $lineList = $this->dbinterface->getSccpDeviceTableData($request['type']);
+                $lineList = $this->dbinterface->getSccpDeviceTableData($request['type'] ?? '');
                 if (empty($lineList)) {
                     return array();
                 }
@@ -348,10 +349,11 @@ trait ajaxHelper {
             case 'getPhoneGrid':
                 $dbDevices = array();
                 // Find all devices defined in the database.
-                $dbDevices = $this->dbinterface->getSccpDeviceTableData('phoneGrid', array('type' => $request['type']));
+                $req_type = $request['type'] ?? '';
+                $dbDevices = $this->dbinterface->getSccpDeviceTableData('phoneGrid', array('type' => $req_type));
 
                 // Return if only interested in SIP devices
-                if ($request['type'] == 'cisco-sip') {
+                if ($req_type == 'cisco-sip') {
                     return $dbDevices;     //this may be empty
                 }
 

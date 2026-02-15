@@ -38,13 +38,18 @@ $info['extconfigs'] = $this->extconfigs->info();
 $info['dbinterface'] = $this->dbinterface->info();
 $info['aminterface'] = $this->aminterface->info();
 $info['XML'] = $this->xmlinterface->info();
-$info['sccp_class'] = $driver['sccp'];
-$info['Core_sccp'] = array('Version' => $core['Version'],
-                            'about' => "Sccp ver: {$core['Version']}   r{$core['vCode']}   Revision: {$core['RevisionNum']}   Hash: {$core['RevisionHash']}");
+$info['sccp_class'] = $driver['sccp'] ?? '';
+$coreVersion = $core['Version'] ?? '';
+$coreVCode = $core['vCode'] ?? '';
+$coreRev = $core['RevisionNum'] ?? '';
+$coreHash = $core['RevisionHash'] ?? '';
+$coreBuildInfo = $core['buildInfo'] ?? array();
+$info['Core_sccp'] = array('Version' => $coreVersion,
+                            'about' => "Sccp ver: {$coreVersion}   r{$coreVCode}   Revision: {$coreRev}   Hash: {$coreHash}");
 $capabilityArray = array( "park", "pickup", "realtime", "video", "conference", "dirtrfr", "feature_monitor", "functions", "manager_events",
                           "devicestate", "devstate_feature", "dynamic_speeddial", "dynamic_speeddial_cid", "experimental", "debug");
 
-$info['chan-sccp build info'] = array('Version' => $core['Version'], 'about' => 'Following options NOT built:  ' . implode('; ',array_diff($capabilityArray, $core['buildInfo'])));
+$info['chan-sccp build info'] = array('Version' => $coreVersion, 'about' => 'Following options NOT built:  ' . implode('; ', array_diff($capabilityArray, $coreBuildInfo)));
 $info['Asterisk'] = array('Version' => FreePBX::Config()->get('ASTVERSION'), 'about' => 'Asterisk.');
 
 if (!empty($this->sccpvalues['SccpDBmodel'])) {
@@ -52,14 +57,17 @@ if (!empty($this->sccpvalues['SccpDBmodel'])) {
 }
 
 exec('in.tftpd -V', $tftpInfo);
+$tftpParts = array();
 $info['TFTP Server'] = array('Version' => 'Not Found', 'about' => 'Mapping not available');
 
 if (isset($tftpInfo[0])) {
-    $tftpInfo = explode(',',$tftpInfo[0]);
-    $info['TFTP Server'] = array('Version' => $tftpInfo[0], 'about' => 'Mapping not available');
-    $tftpInfo[1] = trim($tftpInfo[1]);
-    if ($tftpInfo[1] == 'with remap') {
-        $info['TFTP Server'] = array('Version' => $tftpInfo[0], 'about' => $tftpInfo[1]);
+    $tftpParts = explode(',', $tftpInfo[0]);
+    $info['TFTP Server'] = array('Version' => $tftpParts[0] ?? '', 'about' => 'Mapping not available');
+    if (isset($tftpParts[1])) {
+        $tftpParts[1] = trim($tftpParts[1]);
+        if ($tftpParts[1] === 'with remap') {
+            $info['TFTP Server'] = array('Version' => $tftpParts[0] ?? '', 'about' => $tftpParts[1]);
+        }
     }
 }
 
@@ -70,7 +78,7 @@ if (!empty($this->sccpvalues['tftp_rewrite']['data'])) {
           $info['Provision_SCCP'] = array('Version' => 'base', 'about' => 'Provision Sccp enabled');
           break;
       default:
-          if ($tftpInfo[1] == 'with remap') {
+          if (isset($tftpParts[1]) && $tftpParts[1] === 'with remap') {
               $info['TFTP_Mapping'] = array('Version' => 'off', 'about' => "TFTP mapping is available but the mapping file is not included in tftpd-hpa default settings.<br>
                                             To enable Provision mode, add option <br>
                                             -m /etc/asterisk/sccpManagerRewrite.rules <br>
@@ -102,18 +110,21 @@ if (empty($ast_realtime)) {
     $rt_info = '';
     $rt_sccp = 'Failed';
     foreach ($ast_realtime as $key => $value) {
+        $vStatus = $value['status'] ?? '';
+        $vRealm = $value['realm'] ?? '';
+        $vMessage = $value['message'] ?? '';
         if ($key == $ast_realm) {
-            if ($value['status'] == 'OK') {
+            if ($vStatus == 'OK') {
                 $rt_sccp = 'TEST OK';
-                $rt_info .= '<div> Using SCCP connection found to database: '.$value['realm'] . ' with connector: ['. $key .']</div>';
+                $rt_info .= '<div> Using SCCP connection found to database: ' . htmlspecialchars($vRealm) . ' with connector: ['. htmlspecialchars($key) .']</div>';
             } else {
                 $rt_sccp = 'SCCP ERROR';
-                $rt_info .= '<div class="alert signature alert-danger"> Error : ' . $value['message'] . '</div>';
+                $rt_info .= '<div class="alert signature alert-danger"> Error : ' . htmlspecialchars($vMessage) . '</div>';
             }
-        } elseif ($value['status'] == 'ERROR') {
-            $rt_info .= '<div> No connector found for [' . $key . '] : ' . $value['message'] . '</div>';
-        } elseif ($value['status'] == 'OK') {
-            $rt_info .= '<div> Alternative connector found to database '.$value['realm'] . ' with connector: ['. $key . '] </div>';
+        } elseif ($vStatus == 'ERROR') {
+            $rt_info .= '<div> No connector found for [' . htmlspecialchars($key) . '] : ' . htmlspecialchars($vMessage) . '</div>';
+        } elseif ($vStatus == 'OK') {
+            $rt_info .= '<div> Alternative connector found to database ' . htmlspecialchars($vRealm) . ' with connector: ['. htmlspecialchars($key) . '] </div>';
         }
     }
     $info['RealTime'] = array('Version' => $rt_sccp, 'about' => $rt_info);

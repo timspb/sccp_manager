@@ -10,17 +10,17 @@ $device_warning= null;
 // Default value from Server setings
 //Get default values. Will use these for a new device, and modify for an existing.
 $def_val = $this->getTableDefaults('sccpdevice');
-$def_val['netlang'] =  array("keyword" => 'netlang', "data" => $this->sccpvalues['netlang']['data'], "seq" => "99");
-$def_val['devlang'] =  array("keyword" => 'devlang', "data" => $this->sccpvalues['devlang']['data'], "seq" => "99");
-$def_val['directed_pickup_context'] =  array("keyword" => 'directed_pickup_context', "data" => $this->sccpvalues['directed_pickup_context']['data'], "seq" => "99");
+$def_val['netlang'] =  array("keyword" => 'netlang', "data" => ($this->sccpvalues['netlang'] ?? [])['data'] ?? '', "seq" => "99");
+$def_val['devlang'] =  array("keyword" => 'devlang', "data" => ($this->sccpvalues['devlang'] ?? [])['data'] ?? '', "seq" => "99");
+$def_val['directed_pickup_context'] =  array("keyword" => 'directed_pickup_context', "data" => ($this->sccpvalues['directed_pickup_context'] ?? [])['data'] ?? '', "seq" => "99");
 
 if (!empty($_REQUEST['new_id'])) {
     // Adding device that is connected but not in database
     $dev_id = $_REQUEST['new_id'];
     // Overwrite some specific defaults based on $_REQUEST
-    $def_val['type'] = array("keyword" => 'type', "data" => $_REQUEST['type'], "seq" => "99");
-    if (!empty($_REQUEST['addon'])) {
-        $def_val['addon'] = array("keyword" => 'type', "data" => $_REQUEST['addon'], "seq" => "99");
+    $def_val['type'] = array("keyword" => 'type', "data" => $_REQUEST['type'] ?? '', "seq" => "99");
+    if (!empty($_REQUEST['addon'] ?? '')) {
+        $def_val['addon'] = array("keyword" => 'type', "data" => $_REQUEST['addon'] ?? '', "seq" => "99");
     }
 }
 

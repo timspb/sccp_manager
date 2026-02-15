@@ -53,19 +53,19 @@ abstract class Response extends IncomingMessage
     public function isSuccess()
     {
         // returns true if response message does not contain error
-        return stristr($this->getKey('Response'), 'Error') === false;
+        return stristr((string)($this->getKey('Response') ?? ''), 'Error') === false;
     }
 
     public function isList()
     {
-        if ($this->getKey('EventList') === 'start' ) {
+        if (($this->getKey('EventList') ?? '') === 'start' ) {
             return true;
         }
     }
 
     public function getMessage()
     {
-        return $this->getKey('Message');
+        return $this->getKey('Message') ?? '';
     }
 
     public function setActionId($actionId)

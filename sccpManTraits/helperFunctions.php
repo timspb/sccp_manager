@@ -540,18 +540,20 @@ trait helperFunctions {
             if (!in_array($key, $permittedSettings, true)) {
                 continue;
             }
-            if ($value['seq'] == 0) {
+            $vSeq = $value['seq'] ?? null;
+            $vData = $value['data'] ?? '';
+            if ($vSeq == 0) {
                 switch ($key) {
                     case "allow":
                     case "disallow":
                     case "deny":
                     case "localnet":
                     case "permit":
-                        $conf_init['general'][$key] = explode(';', $value['data']);
+                        $conf_init['general'][$key] = explode(';', $vData);
                         break;
                     case "devlang":
                         /*
-                        $lang_data = $this->extconfigs->getExtConfig('sccp_lang', $value['data']);
+                        $lang_data = $this->extconfigs->getExtConfig('sccp_lang', $vData);
                         if (!empty($lang_data)) {
                             // TODO:  will always get here, but lang_data['codepage'] will be empty as not a valid key
                             $this->sccp_conf_init['general']['phonecodepage'] = $lang_data['codepage'];
@@ -563,8 +565,8 @@ trait helperFunctions {
                     case "sccp_compatible":    // This is equal to SccpDBmodel
                         break;
                     default:
-                        if (!empty($value['data'])) {
-                            $conf_init['general'][$key] = $value['data'];
+                        if (!empty($vData)) {
+                            $conf_init['general'][$key] = $vData;
                         }
                 }
             }

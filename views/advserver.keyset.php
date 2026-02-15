@@ -61,7 +61,7 @@ $keynamearray = array('onhook'    => array('sname' => 'ONHOOK', 'name' =>'Displa
                                 $i = 0;
                                 foreach ($keynamearray as $key => $value) {
                                     if ($i < 12) {
-                                        echo '<th data-sortable="false" data-field="'.$key.'">'._($value['sname']).'</th>';
+                                        echo '<th data-sortable="false" data-field="'.$key.'">'._($value['sname'] ?? '').'</th>';
                                     }
                                     $i ++;
                                 }
