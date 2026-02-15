@@ -915,7 +915,7 @@ function createBackUpConfig()
     $dir = $cnf_int->get('ASTETCDIR');
     $dir = is_array($dir) ? (string)reset($dir) : (string)$dir;
 
-    $fsql = $dir.'/sccp_backup_'.date("Ymd").'.sql';
+    $fsql = $dir . '/sccp_backup_' . date("Ymd") . '.sql';
     $dbName = is_array($amp_conf['AMPDBNAME'] ?? null) ? (string)reset($amp_conf['AMPDBNAME']) : (string)($amp_conf['AMPDBNAME'] ?? '');
     $dbPass = is_array($amp_conf['AMPDBPASS'] ?? null) ? (string)reset($amp_conf['AMPDBPASS']) : (string)($amp_conf['AMPDBPASS'] ?? '');
     $dbUser = is_array($amp_conf['AMPDBUSER'] ?? null) ? (string)reset($amp_conf['AMPDBUSER']) : (string)($amp_conf['AMPDBUSER'] ?? '');
@@ -929,12 +929,15 @@ function createBackUpConfig()
         outn("<font color='red'>PHPx.x-zip not installed where x.x is the installed PHP version. Install it before continuing !</font>");
         die_freepbx();
     }
-    $filename = $dir . "/sccp_install_backup" . date("Ymdhis"). ".zip";
+    $filename = $dir . "/sccp_install_backup" . date("Ymdhis") . ".zip";
     if ($zip->open($filename, \ZIPARCHIVE::CREATE)) {
         foreach ($backup_files as $file) {
+            $file = (string)$file;
             foreach ($backup_ext as $b_ext) {
-                if (file_exists($dir . '/'.$file . $b_ext)) {
-                    $zip->addFile($dir . '/'.$file . $b_ext);
+                $b_ext = (string)$b_ext;
+                $path = $dir . '/' . $file . $b_ext;
+                if (file_exists($path)) {
+                    $zip->addFile($path);
                 }
             }
         }
@@ -943,10 +946,12 @@ function createBackUpConfig()
         }
         $zip->close();
     } else {
-        outn("<li>" . _("Error Creating BackUp: ") . $filename ."</li>");
+        outn("<li>" . _("Error Creating BackUp: ") . (string)$filename . "</li>");
     }
-    unlink($fsql);
-    outn("<li>" . _("Config backup created: ") . $filename ."</li>");
+    if (is_file($fsql)) {
+        unlink($fsql);
+    }
+    outn("<li>" . _("Config backup created: ") . (string)$filename . "</li>");
 }
 
 function RenameConfig()
