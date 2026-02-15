@@ -888,17 +888,18 @@ function installDbPopulateSccpline() {
     $linesToCreate = array_diff_assoc($freePbxExts, $sccpExts);
 
     foreach ($linesToCreate as $key => $valArr) {
+        $name = is_array($key) ? '' : (string)$key;
         $accountcode = is_array($valArr['accountcode'] ?? null) ? '' : (string)($valArr['accountcode'] ?? '');
         $label = is_array($valArr['label'] ?? null) ? '' : (string)($valArr['label'] ?? '');
-        $description = $label . ' <' . $key . '>';
+        $description = $label . ' <' . $name . '>';
         $stmt = $db->prepare("INSERT into sccpline (name, accountcode, description, label) VALUES (:name, :accountcode, :description, :label)");
-        $stmt->bindParam(':name', $key, \PDO::PARAM_STR);
+        $stmt->bindParam(':name', $name, \PDO::PARAM_STR);
         $stmt->bindParam(':accountcode', $accountcode, \PDO::PARAM_STR);
         $stmt->bindParam(':description', $description, \PDO::PARAM_STR);
         $stmt->bindParam(':label', $label, \PDO::PARAM_STR);
         if (!$stmt->execute()) {
             $err = $stmt->errorInfo();
-            die_freepbx(sprintf(_("Error inserting into sccpline. Error was: %s "), $err[2] ?? 'unknown'));
+            die_freepbx(sprintf(_("Error inserting into sccpline. Error was: %s "), (string)($err[2] ?? 'unknown')));
         }
     }
 }
@@ -913,7 +914,10 @@ function createBackUpConfig()
     $dir = $cnf_int->get('ASTETCDIR');
 
     $fsql = $dir.'/sccp_backup_'.date("Ymd").'.sql';
-    $result = exec('mysqldump '.$amp_conf['AMPDBNAME'].' --password='.$amp_conf['AMPDBPASS'].' --user='.$amp_conf['AMPDBUSER'].' --single-transaction >'.$fsql);
+    $dbName = (string)($amp_conf['AMPDBNAME'] ?? '');
+    $dbPass = (string)($amp_conf['AMPDBPASS'] ?? '');
+    $dbUser = (string)($amp_conf['AMPDBUSER'] ?? '');
+    $result = exec('mysqldump '.$dbName.' --password='.$dbPass.' --user='.$dbUser.' --single-transaction >'.$fsql);
 
     try {
         $zip = new \ZipArchive();
