@@ -72,17 +72,12 @@ class formcreate
         <div class="element-container">
             <div class="row">
                 <div class="form-group <?php echo $res_sec_class; ?>">
-                    <div class="col-md-3">
+                    <div class="col-md-3 sccp-form-label">
                         <label class="control-label" for="<?php echo $res_id; ?>"><?php echo _($child->label);?></label>
                         <i class="fa fa-question-circle fpbx-help-icon" data-for="<?php echo $res_id; ?>"></i>
                     </div>
+                    <div class="col-md-5 sccp-form-value">
         <?php
-                    if (!empty($sccp_defaults[$shortId]['systemdefault'] ?? '')) {
-                        // There is a system default, so add button to customise or reset
-                        //-- Start include of defaults button --
-                        echo "<div class=col-md-3>";
-                    }
-
         // Can have multiple inputs for a field which are displayed with a separator
         $i = 0;
         foreach ($child->xpath('input') as $value) {
@@ -110,47 +105,39 @@ class formcreate
             }
             $i++;
         }
-        if (!empty($sccp_defaults[$shortId]['systemdefault'] ?? '')) {
-
         ?>
                     </div>
-                    <div class="col-md-4">
+        <?php
+                    if (!empty($sccp_defaults[$shortId]['systemdefault'] ?? '')) {
+        ?>
+                    <div class="col-md-4 sccp-form-actions">
                       <span class="radioset">
                         <input type="checkbox"
                             <?php
                             echo " data-for={$res_id} data-type=text id=usedefault_{$res_id} ";
                             if ($usingSysDefaults) {
-                                // Setting a site specific value
                                 echo "class=sccp-edit :checked ";
                             } else {
-                                // reverting to chan-sccp default values
-                                echo "class=sccp-restore data-default=" . ($sccp_defaults[$res_n]['systemdefault'] ?? '') . " ";
+                                echo "class=sccp-restore data-default=" . self::h($sccp_defaults[$res_n]['systemdefault'] ?? '') . " ";
                             }
                             ?>
                         >
-                        <label
-                            <?php
-                            echo "for=usedefault_{$res_id} >";
-                            echo ($usingSysDefaults) ? _("Customise") : sprintf(_("Use %s defaults"), $this->buttonDefLabel);
-                            ?>
-                        </label>
-
+                        <label for="usedefault_<?php echo $res_id; ?>"><?php echo ($usingSysDefaults) ? _("Customise") : sprintf(_("Use %s defaults"), $this->buttonDefLabel); ?></label>
                       </span>
                     </div>
+        <?php
+                    }
+                ?>
                 </div>
             </div>
+        <?php
+                    if (!empty($sccp_defaults[$shortId]['systemdefault'] ?? '')) {
+        ?>
             <div class="row" id="edit_<?php echo $res_id; ?>" style="display: none">
                 <div class="form-group <?php echo $res_sec_class; ?>">
                     <div class="col-md-3">
                         <i><?php echo sprintf(_("Enter new %s value for %s"), $this->buttonHelpLabel, $shortId); ?></i>
                     </div>
-
-                    <!-- Finish include of defaults button -->
-                    <?php
-                    // Close the conditional include of the defaults button opened at line ~47
-                  }
-                    ?>
-
                     <div class="col-md-9">
                         <?php
                         $i=0;
@@ -196,6 +183,9 @@ class formcreate
                     </div>
                 </div>
             </div>
+        <?php
+                    }
+        ?>
             <div class="row">
                 <div class="col-md-12">
                     <span id="<?php echo $res_id;?>-help" class="help-block fpbx-help-block"><?php echo _($child->help);?></span>
@@ -407,15 +397,13 @@ class formcreate
         <div class="element-container">
             <div class="row">
                 <div class="form-group <?php echo $res_sec_class;?>">
-                    <div class="col-md-3 radioset">
+                    <div class="col-md-3 sccp-form-label radioset">
                         <label class="control-label" for="<?php echo $res_id; ?>"><?php echo _($child->label)?></label>
                         <i class="fa fa-question-circle fpbx-help-icon" data-for="<?php echo $res_id; ?>"></i>
                     </div>
-
+                    <div class="col-md-5 sccp-form-value">
                     <?php
                     $res_v = '';
-                    // set res_v according to precedence Default here, value here, supplied value
-
                     if (!empty($child->default)) {
                         $res_v = (string)$child->default;
                     }
@@ -431,53 +419,41 @@ class formcreate
                     if (($sccp_defaults[$res_n]['systemdefault'] ?? '') != $res_v) {
                         $usingSysDefaults = false;
                     }
-                    if (!empty($sccp_defaults[$res_n]['systemdefault'] ?? '')) {
-                    // There is a system default, so add button to customise or reset
-                    // the closing } is after the code to include the button at line ~438
-
-                    //-- Start include of defaults button --
-                    echo "<div class='col-md-3'>";
-                    // Output current value
-                    echo $res_v;
+                    echo self::h($res_v);
                     ?>
                     </div>
-                    <div class="col-md-4">
+                    <?php
+                    if (!empty($sccp_defaults[$res_n]['systemdefault'] ?? '')) {
+                    ?>
+                    <div class="col-md-4 sccp-form-actions">
                       <span class="radioset">
                         <input type="checkbox"
                             <?php
                             echo " data-for={$res_id} data-type=radio id=usedefault_{$res_id} ";
                             if ($usingSysDefaults) {
-                                // Setting a site specific value
                                 echo " class=sccp-edit :checked ";
                             } else {
-                                // reverting to chan-sccp default values
-                                echo " data-default=" . ($sccp_defaults[$res_n]['systemdefault'] ?? '') . " class=sccp-restore ";
+                                echo " data-default=" . self::h($sccp_defaults[$res_n]['systemdefault'] ?? '') . " class=sccp-restore ";
                             }
                             ?>
                         >
-                        <label
-                            <?php
-                            echo "for=usedefault_{$res_id} >";
-                            echo ($usingSysDefaults) ? _("Customise") : sprintf(_("Use %s defaults"), $this->buttonDefLabel);
-                            ?>
-                        </label>
+                        <label for="usedefault_<?php echo $res_id; ?>"><?php echo ($usingSysDefaults) ? _("Customise") : sprintf(_("Use %s defaults"), $this->buttonDefLabel); ?></label>
                       </span>
                     </div>
+                    <?php
+                    }
+                    ?>
                 </div>
             </div>
-        <!--    <div class="row" id="edit_<?php echo $res_id; ?>" style="display: none"> -->
+            <?php
+                    if (!empty($sccp_defaults[$res_n]['systemdefault'] ?? '')) {
+            ?>
             <div class="row" id="edit_<?php echo $res_id; ?>" style="display: none">
                 <div class="form-group <?php echo $res_id; ?>">
                     <div class="col-md-3">
-                        <i><?php echo "Choose new {$this->buttonHelpLabel} value for {$res_n}"; ?></i>
+                        <i><?php echo sprintf(_("Choose new %s value for %s"), $this->buttonHelpLabel, $res_n); ?></i>
                     </div>
-                    <!-- Finish include of defaults button -->
-                    <?php
-                    // Close the conditional include of the defaults button opened at line ~385
-                    }
-                    ?>
-
-                    <div class="col-md-9 radioset " data-hide="on">
+                    <div class="col-md-9 radioset" data-hide="on">
 
                       <?php
                         $i = 0;
@@ -519,6 +495,10 @@ class formcreate
                         </div>
                     </div>
                 </div>
+            </div>
+            <?php
+                    }
+            ?>
             <div class="row"><div class="col-md-12">
                     <span id="<?php echo $res_id;?>-help" class="help-block fpbx-help-block"><?php echo _($child->help);?></span>
             </div></div>
@@ -1010,9 +990,9 @@ class formcreate
         $res_id = $npref.$res_n;
         ?>
 
-        <div class="panel panel-default">
+        <div class="panel panel-default sccp-help-panel">
             <div class="panel-heading">
-                <h3 class="panel-title"><i class="fa fa-info-circle"></i> <nbsp> <?php echo _($child->label);?>
+                <h3 class="panel-title"><i class="fa fa-info-circle"></i> <?php echo _($child->label);?>
                 <a data-toggle="collapse" href="<?php echo '#'.$res_id;?>"><i class="fa fa-plus pull-right"></i></a></h3>
             </div>
             <div class="panel-body collapse" id="<?php echo $res_id;?>">
