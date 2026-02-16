@@ -332,8 +332,9 @@ trait ajaxHelper {
                 $activeDevices = $this->aminterface->sccp_get_active_device();
                 $uniqueLineList = array();
                 foreach ($lineList as $key => &$lineArr) {
-                    if (array_key_exists($lineArr['mac'], $activeDevices)) {
-                        $lineArr['line_status'] = "{$activeDevices[$lineArr['mac']]['status']} | {$activeDevices[$lineArr['mac']]['act']}";
+                    $act = $this->sccpFindActiveDeviceByName($activeDevices, $lineArr['mac'] ?? '');
+                    if (!empty($act)) {
+                        $lineArr['line_status'] = ($act['status'] ?? '') . ' | ' . ($act['act'] ?? '');
                     }
                     if (array_key_exists($lineArr['name'], $uniqueLineList)) {
                         $lineList[$uniqueLineList[$lineArr['name']]]['mac'] .= '<br>' . $lineArr['mac'];
@@ -383,18 +384,22 @@ trait ajaxHelper {
                 }
                 unset($dev_id);
 
-                // Find all devices currently connected
+                // Find all devices currently connected (AMI keys by MAC; match case-insensitively with DB name)
                 $activeDevices = $this->aminterface->sccp_get_active_device();
 
                 foreach ($dbDevices as &$dev_id) {
-                    if (!empty($activeDevices[$dev_id['name']])) {
+                    $act = $this->sccpFindActiveDeviceByName($activeDevices, $dev_id['name'] ?? '');
+                    if (!empty($act)) {
                         // Device is in db and is connected
-                        $dev_id['description'] = $activeDevices[$dev_id['name']]['descr'];
-                        $dev_id['status'] = $activeDevices[$dev_id['name']]['status'];
-                        $dev_id['address'] = $activeDevices[$dev_id['name']]['address'];
+                        $dev_id['description'] = $act['descr'] ?? $dev_id['description'];
+                        $dev_id['status'] = $act['status'] ?? 'OK';
+                        $dev_id['address'] = $act['address'] ?? $dev_id['address'];
                         $dev_id['new_hw'] = 'N';
-                        // No further action required on this active device
-                        unset($activeDevices[$dev_id['name']]);
+                        // Remove from active list so we don't treat it as "new" below (use same key as in activeDevices)
+                        $usedKey = $this->sccpActiveDeviceKeyUsed($activeDevices, $dev_id['name'] ?? '');
+                        if ($usedKey !== '') {
+                            unset($activeDevices[$usedKey]);
+                        }
                     }
                 }
                 unset($dev_id); // unset reference.
@@ -931,6 +936,52 @@ trait ajaxHelper {
         }
         $search = '?display=sccp_phone';
         return array('status' => true, 'message' => $msg, 'reload' => true, 'toastFlag' => $toastFlag, 'search' => $search, 'hash' => $hash);
+    }
+
+    /**
+     * Find active device entry by name/MAC with case-insensitive match (AMI and DB may differ in case).
+     * @param array $activeDevices result of sccp_get_active_device() (keyed by MAC)
+     * @param string $name device name or MAC from DB
+     * @return array|null active device row or null
+     */
+    private function sccpFindActiveDeviceByName(array $activeDevices, $name)
+    {
+        if ($name === '' || $name === null) {
+            return null;
+        }
+        $name = (string) $name;
+        if (isset($activeDevices[$name]) && is_array($activeDevices[$name])) {
+            return $activeDevices[$name];
+        }
+        foreach ($activeDevices as $key => $row) {
+            if (is_array($row) && strcasecmp((string) $key, $name) === 0) {
+                return $row;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return the key used in $activeDevices for the given name (for unset after match).
+     * @param array $activeDevices result of sccp_get_active_device()
+     * @param string $name device name or MAC from DB
+     * @return string key in $activeDevices or ''
+     */
+    private function sccpActiveDeviceKeyUsed(array $activeDevices, $name)
+    {
+        if ($name === '' || $name === null) {
+            return '';
+        }
+        $name = (string) $name;
+        if (array_key_exists($name, $activeDevices)) {
+            return $name;
+        }
+        foreach (array_keys($activeDevices) as $key) {
+            if (strcasecmp((string) $key, $name) === 0) {
+                return $key;
+            }
+        }
+        return '';
     }
 }
 ?>
