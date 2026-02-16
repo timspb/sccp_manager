@@ -42,7 +42,7 @@
                             <th data-sortable="true" data-field="description"><?php echo _('Device  Description') ?></th>
                             <th data-sortable="true" data-formatter="DisplayTypeFormatter" data-field="type"><?php echo _('Device type') ?></th>
                             <th data-sortable="true" data-field="button" data-formatter="LineFormatter"><?php echo _('Line') ?></th>
-                            <th data-sortable="true" data-field="status"><?php echo _('Status') ?></th>
+                            <th data-sortable="true" data-field="status" data-formatter="StatusColorFormatter"><?php echo _('Status') ?></th>
                             <th data-sortable="true" data-field="address"><?php echo _('Address') ?></th>
                             <th data-field="actions" data-formatter="DispayDeviceActionsKeyFormatter"><?php echo _('Actions') ?></th>
                         </tr>
@@ -95,6 +95,12 @@
             }
         }
         return result !== '' ? result : '<span class="text-muted">— ' + _('No line') + ' —</span>';
+    }
+    function StatusColorFormatter(value, row, index) {
+        var s = (value === null || value === undefined) ? '' : String(value).trim();
+        var isOk = (s === 'OK' || s.indexOf('OK') === 0);
+        var cls = isOk ? 'sccp-status-ok' : 'sccp-status-off';
+        return '<span class="' + cls + '">' + (s !== '' ? s : '—') + '</span>';
     }
 
 </script>

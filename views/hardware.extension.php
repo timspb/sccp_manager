@@ -26,7 +26,7 @@ if (!empty($this->sccpvalues['system_rouminguser'])) {
                             <th data-sortable="true" data-field="name"><?php echo _('Extension') ?></th>
                             <th data-sortable="true" data-field="label"><?php echo _('Display Name') ?></th>
                             <th data-sortable="true" data-field="mac"><?php echo _('Device') ?></th>
-                            <th data-sortable="true" data-field="line_status" class="text-center"><?php echo _('Status | Active') ?></th>
+                            <th data-sortable="true" data-field="line_status" class="text-center" data-formatter="LineStatusColorFormatter"><?php echo _('Status | Active') ?></th>
                             <th data-field="actions" data-formatter="DispayPhoneActionsKeyFormatter"><?php echo _('Actions') ?></th>
                         </tr>
                     </thead>
@@ -36,6 +36,12 @@ if (!empty($this->sccpvalues['system_rouminguser'])) {
     </div>
 </div>
 <script>
+    function LineStatusColorFormatter(value, row, index) {
+        var s = (value === null || value === undefined) ? '' : String(value).trim();
+        var isOk = (s.indexOf('OK') !== -1 && (s.indexOf('Yes') !== -1 || s.indexOf('yes') !== -1));
+        var cls = isOk ? 'sccp-status-ok' : 'sccp-status-off';
+        return '<span class="' + cls + '">' + (s !== '' ? s : '—') + '</span>';
+    }
     function DispayPhoneActionsKeyFormatter(value, row, index) {
         var exp_dev = '';
         var rmn_dev = '<?php echo $roming_enable ?>';

@@ -16,3 +16,21 @@ and open the template in the editor.
     min-height: 10px;
     padding: 1px 1px;
 }
+
+/* Status column: green = connected/OK, red = disconnected/not active */
+.sccp-status-ok {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    background-color: #d4edda;
+    color: #155724;
+}
+.sccp-status-off {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    background-color: #f8d7da;
+    color: #721c24;
+}
