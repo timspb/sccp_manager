@@ -25,28 +25,28 @@ $hint_list  = $this->getHintInformation(true, array('context'=>'park-hints')) ;
 $line_id =0;
 $max_buttons =56;     //Don't know hardware type so set a maximum. On save, this is set to actual max buttons
 $show_buttons =1;
+$db_device = array();
+$db_buttons = array();
 
 if (!empty($_REQUEST['id'])) {
     $dev_id = $_REQUEST['id'];
     $db_buttons = $this->dbinterface->getSccpDeviceTableData('get_sccpdevice_buttons', array("id" => $dev_id));
     $db_device = $this->dbinterface->getSccpDeviceTableData('get_sccpdevice_byid', array("id" => $dev_id));
-    $show_buttons = $db_device['buttons'];
+    $db_device = is_array($db_device) ? $db_device : array();
+    $show_buttons = (int)($db_device['buttons'] ?? 0);
     if (!empty($db_device['addon_buttons'])) {
-        $show_buttons += $db_device['addon_buttons'];
+        $show_buttons += (int)$db_device['addon_buttons'];
     }
-    //$show_buttons = $max_buttons;
 }
 if (!empty($_REQUEST['new_id'])) {
     $val = $_REQUEST['type'] ?? '';
-    $dev_schema =  $this-> getSccpModelInformation('byid', false, "all", array('model' =>$val));
-//   $db_device = $this->dbinterface->getSccpDeviceTableData('get_sccpdevice_byid', array("id" => $val));
-    $show_buttons = $dev_schema[0]['buttons'];
+    $dev_schema = $this->getSccpModelInformation('byid', false, "all", array('model' => $val));
+    $show_buttons = (isset($dev_schema[0]['buttons']) ? (int)$dev_schema[0]['buttons'] : 1);
     if (!empty($_REQUEST['addon'])) {
         $val = $_REQUEST['addon'];
-        $dev_schema =  $this-> getSccpModelInformation('byid', false, "all", array('model' =>$val));
-        $show_buttons += $dev_schema[0]['buttons'];
+        $dev_schema = $this->getSccpModelInformation('byid', false, "all", array('model' => $val));
+        $show_buttons += (isset($dev_schema[0]['buttons']) ? (int)$dev_schema[0]['buttons'] : 0);
     }
-    //$show_buttons = $max_buttons;
 }
 if (!empty($_REQUEST['ru_id'])) {
     $dev_id = $_REQUEST['ru_id'];
@@ -60,8 +60,8 @@ if (!empty($_REQUEST['ru_id'])) {
     <input type="hidden" name="category" value="frm_editbuttons">
     <input type="hidden" name="Submit" value="Submit">
     <input type="hidden" name="buttonscount" id="buttonscount" value="<?php echo $this->escapeHtml($show_buttons);?>">
-    <input type="hidden" name="devButtonCnt" id="devButtonCnt" value="<?php echo $this->escapeHtml(!empty($db_device['buttons']) ? $db_device['buttons'] : 0);?>">
-    <input type="hidden" name="addonCnt" id="addonCnt" value="<?php echo $this->escapeHtml(!empty($db_device['dns']) ? $db_device['dns'] : 0);?>">
+    <input type="hidden" name="devButtonCnt" id="devButtonCnt" value="<?php echo $this->escapeHtml(isset($db_device['buttons']) ? (int)$db_device['buttons'] : 0);?>">
+    <input type="hidden" name="addonCnt" id="addonCnt" value="<?php echo $this->escapeHtml(isset($db_device['dns']) ? $db_device['dns'] : 0);?>">
     <div class="section-title" data-for="<?php echo $this->escapeHtml($forminfo[0]['name']);?>">
         <h3><i class="fa fa-minus"></i><?php echo _($forminfo[0]['label']) ?></h3>
     </div>
