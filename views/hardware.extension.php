@@ -36,15 +36,19 @@ if (!empty($this->sccpvalues['system_rouminguser'])) {
     </div>
 </div>
 <script>
+    function sccpExtensionRegStatus(s) {
+        s = (s === null || s === undefined) ? '' : String(s).trim();
+        var part = s.split('|')[0];
+        return (part && part.trim() === 'OK');
+    }
     function sccpExtensionRowStyle(row, index) {
-        var s = (row.line_status === null || row.line_status === undefined) ? '' : String(row.line_status).trim();
-        var isOk = (s.indexOf('OK') !== -1 && (s.indexOf('Yes') !== -1 || s.indexOf('yes') !== -1));
-        return { classes: isOk ? 'sccp-row-ok' : 'sccp-row-off' };
+        var connected = sccpExtensionRegStatus(row.line_status);
+        return { classes: connected ? 'sccp-row-ok' : 'sccp-row-off' };
     }
     function LineStatusColorFormatter(value, row, index) {
         var s = (value === null || value === undefined) ? '' : String(value).trim();
-        var isOk = (s.indexOf('OK') !== -1 && (s.indexOf('Yes') !== -1 || s.indexOf('yes') !== -1));
-        var cls = isOk ? 'sccp-status-ok' : 'sccp-status-off';
+        var connected = sccpExtensionRegStatus(s);
+        var cls = connected ? 'sccp-status-ok' : 'sccp-status-off';
         var icon = '<i class="fa fa-phone ' + cls + '" aria-hidden="true"></i> ';
         return '<span class="' + cls + '">' + icon + (s !== '' ? s : '—') + '</span>';
     }
@@ -68,9 +72,8 @@ if (!empty($this->sccpvalues['system_rouminguser'])) {
                 $(this).removeClass('sccp-row-ok sccp-row-off');
                 var row = rows[i];
                 if (!row) return;
-                var s = (row.line_status === null || row.line_status === undefined) ? '' : String(row.line_status).trim();
-                var isOk = (s.indexOf('OK') !== -1 && (s.indexOf('Yes') !== -1 || s.indexOf('yes') !== -1));
-                $(this).addClass(isOk ? 'sccp-row-ok' : 'sccp-row-off');
+                var connected = sccpExtensionRegStatus(row.line_status);
+                $(this).addClass(connected ? 'sccp-row-ok' : 'sccp-row-off');
             });
         }
         $('#table-sccp-extension').on('load-success.bs.table', applyExtensionRowColors);
