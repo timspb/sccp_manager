@@ -30,7 +30,7 @@
                             <th data-checkbox="true"></th>
                             <th data-sortable="true" data-field="name"><?php echo _('Device ID') ?></th>
                             <th data-sortable="true" data-field="description"><?php echo _('Device  Description') ?></th>
-                            <th data-sortable="true" data-formatter="DispayTypeFormatter" data-field="type"><?php echo _('Device type') ?></th>
+                            <th data-sortable="true" data-formatter="DisplayTypeFormatter" data-field="type"><?php echo _('Device type') ?></th>
                             <th data-sortable="true" data-field="button" data-formatter="LineFormatter"><?php echo _('Line') ?></th>
                             <th data-sortable="true" data-field="status"><?php echo _('Status') ?></th>
                             <th data-sortable="true" data-field="address"><?php echo _('Address') ?></th>
@@ -47,7 +47,7 @@
 
 
 
-    function DispayTypeFormatter(value, row, index) {
+    function DisplayTypeFormatter(value, row, index) {
         var exp_model = value;
         if (row['addon'] !== null ) {
             var posd = row['addon'].indexOf(';');

@@ -135,21 +135,21 @@ abstract class Message
         }
     }
 
-    protected function sanitizeInput($value, $prefered_type = '')
+    protected function sanitizeInput($value, $preferred_type = '')
     {
-        if ($prefered_type == '') {
+        if ($preferred_type == '') {
             if (!isset($value) || $value === null || strlen($value) == 0) {
                 return null;
             } elseif (is_numeric($value)) {
-                $prefered_type = 'numeric';
+                $preferred_type = 'numeric';
             } elseif (is_string($value)) {
-                $prefered_type = 'string';
+                $preferred_type = 'string';
             } else {
                 throw new AMIException("Don't know how to convert: '" . $value . "'\n");
             }
         }
-        if ($prefered_type !== '') {
-            switch ($prefered_type) {
+        if ($preferred_type !== '') {
+            switch ($preferred_type) {
                 case 'string':
                     if (!isset($value) || $value === null || strlen($value) == 0) {
                         return '';

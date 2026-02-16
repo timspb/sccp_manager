@@ -95,17 +95,17 @@ if (!empty($this->sccpvalues['tftp_rewrite']['data'])) {
 $info['Сompatible'] = array('Version' => $compatible, 'about' => 'Ok');
 if (!empty($this->sccpvalues['SccpDBmodel'])) {
     if ($compatible > $this->sccpvalues['SccpDBmodel']['data']) {
-        $info['Сompatible']['about'] = '<div class="alert signature alert-danger"> Reinstall SCCP manager required</div>';
+        $info['Сompatible']['about'] = 'Reinstall SCCP manager required';
     }
 }
 if ($db_Schema == 0) {
-    $info['DB_Schema'] = array('Version' => 'Error', 'about' => '<div class="alert signature alert-danger"> ERROR DB Version </div>');
+    $info['DB_Schema'] = array('Version' => 'Error', 'about' => 'ERROR DB Version');
 } else {
     $info['DB_Schema'] = array('Version' => $db_Schema, 'about' => (($compatible == $db_Schema ) ? 'Ok' : 'Incompatible Version'));
 }
 
 if (empty($ast_realtime)) {
-    $info['RealTime'] = array('Version' => 'Error', 'about' => '<div class="alert signature alert-danger"> No RealTime connections found</div>');
+    $info['RealTime'] = array('Version' => 'Error', 'about' => 'No RealTime connections found');
 } else {
     $rt_info = '';
     $rt_sccp = 'Failed';
@@ -116,15 +116,15 @@ if (empty($ast_realtime)) {
         if ($key == $ast_realm) {
             if ($vStatus == 'OK') {
                 $rt_sccp = 'TEST OK';
-                $rt_info .= '<div> Using SCCP connection found to database: ' . htmlspecialchars($vRealm) . ' with connector: ['. htmlspecialchars($key) .']</div>';
+                $rt_info .= ($rt_info !== '' ? "\n" : '') . 'Using SCCP connection found to database: ' . htmlspecialchars($vRealm) . ' with connector: [' . htmlspecialchars($key) . ']';
             } else {
                 $rt_sccp = 'SCCP ERROR';
-                $rt_info .= '<div class="alert signature alert-danger"> Error : ' . htmlspecialchars($vMessage) . '</div>';
+                $rt_info .= ($rt_info !== '' ? "\n" : '') . 'Error: ' . htmlspecialchars($vMessage);
             }
         } elseif ($vStatus == 'ERROR') {
-            $rt_info .= '<div> No connector found for [' . htmlspecialchars($key) . '] : ' . htmlspecialchars($vMessage) . '</div>';
+            $rt_info .= ($rt_info !== '' ? "\n" : '') . 'No connector found for [' . htmlspecialchars($key) . ']: ' . htmlspecialchars($vMessage);
         } elseif ($vStatus == 'OK') {
-            $rt_info .= '<div> Alternative connector found to database ' . htmlspecialchars($vRealm) . ' with connector: ['. htmlspecialchars($key) . '] </div>';
+            $rt_info .= ($rt_info !== '' ? "\n" : '') . 'Alternative connector found to database ' . htmlspecialchars($vRealm) . ' with connector: [' . htmlspecialchars($key) . ']';
         }
     }
     $info['RealTime'] = array('Version' => $rt_sccp, 'about' => $rt_info);
@@ -136,12 +136,12 @@ $mariaParts = $mariaDbInfo ? explode(' ', $mariaDbInfo) : array();
 $info['MariaDb'] = array('Version' => isset($mariaParts[3]) ? $mariaParts[3] : 'n/a', 'about' => $mariaDbInfo ?: 'mysql not in PATH');
 
 if (empty($conf_realtime)) {
-    $info['ConfigsRealTime'] = array('Version' => 'Error', 'about' => '<div class="alert signature alert-danger"> Realtime configuration was not found</div>');
+    $info['ConfigsRealTime'] = array('Version' => 'Error', 'about' => 'Realtime configuration was not found');
 } else {
     $rt_info = '';
     foreach ($conf_realtime as $key => $value) {
         if (($value != 'OK') && ($key != 'extconfigfile')) {
-            $rt_info .= '<div> Found error in section ' . $key . ' :' . $value . '</div>';
+            $rt_info .= ($rt_info !== '' ? "\n" : '') . 'Found error in section ' . $this->escapeHtml($key) . ': ' . $this->escapeHtml($value);
         }
     }
     if (!empty($rt_info)) {

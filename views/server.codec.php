@@ -74,7 +74,7 @@ if (empty($sccp_disallow_def)) {
                                       <br>Higher priority enabled codecs are at the top
                                       <br>Precedence for ulaw and alaw, if used, should be set according to your region
                                       <br>If your region uses alaw, it is important that alaw has the highest priority
-                                      <br>To return to chan-sccp defaults, uncheck ALL codecs (both Audio and Video)."),"Helpful information",true) ?>
+                                      <br>To return to chan-sccp defaults, uncheck ALL codecs (both Audio and Video)."),_("Helpful information"),true) ?>
                                 </div>
                                 <?php
                                 $seq = 1;

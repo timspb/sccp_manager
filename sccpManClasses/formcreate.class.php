@@ -551,18 +551,28 @@ class formcreate
                 $select_opt= $syslangs;
                 break;
             case 'SLTD':
-                // Device Language
+                // Device Language: show all available from XML so user can choose any language (incl. not yet downloaded)
                 $select_opt = array('xx' => 'No language packs found');
-                                if (!empty($installedLangs['languages']['have'] ?? [])) {
-                                    $select_opt = (array)($installedLangs['languages']['have'] ?? []);
-                                }
+                $avail = (array)($installedLangs['languages']['available'] ?? []);
+                $have = (array)($installedLangs['languages']['have'] ?? []);
+                if (!empty($avail) || !empty($have)) {
+                    $select_opt = array();
+                    foreach (array_merge($avail, array_diff($have, $avail)) as $v) {
+                        $select_opt[(string)$v] = (string)$v;
+                    }
+                }
                 break;
             case 'SLTN':
-                // Network Language
+                // Network Country: show all available from XML so user can choose any country
                 $select_opt = array('xx' => 'No country packs found');
-                                if (!empty($installedLangs['countries']['have'] ?? [])) {
-                                    $select_opt = (array)($installedLangs['countries']['have'] ?? []);
-                                }
+                $avail = (array)($installedLangs['countries']['available'] ?? []);
+                $have = (array)($installedLangs['countries']['have'] ?? []);
+                if (!empty($avail) || !empty($have)) {
+                    $select_opt = array();
+                    foreach (array_merge($avail, array_diff($have, $avail)) as $v) {
+                        $select_opt[(string)$v] = (string)$v;
+                    }
+                }
                 break;
             case 'SLZ':
                 $timeZoneOffsetList = array('-12' => 'GMT -12', '-11' => 'GMT -11', '-10' => 'GMT -10', '-09' => 'GMT -9',
@@ -842,7 +852,9 @@ class formcreate
                         }
                     }
                             echo  '>';
-
+                            if (empty($select_opt) && in_array((string)($child['type'] ?? ''), array('SDM', 'SDMS'), true)) {
+                                echo '<option value="">' . self::h(_('No models loaded. Add models in SCCP Advance Server → Models.')) . '</option>';
+                            }
                             $fld  = (string)$child->select['name'];
                             $flv  = (string)$child->select['name'];
                             $flv2 = (string)$child->select['addlabel'];
@@ -854,9 +866,15 @@ class formcreate
                         $child->value = self::safeStr($fval['data'] ?? '');
                         $key = $fval['data'];
                     }
+                    $isModelSelect = in_array((string)($child['type'] ?? ''), array('SDM', 'SDMS'), true);
                     foreach ($select_opt as $data) {
-                        echo '<option value="' . self::h($data[$fld] ?? '') . '"';
-                        if ($key == ($data[$fld] ?? '')) {
+                        $optVal = $data[$fld] ?? '';
+                        echo '<option value="' . self::h($optVal) . '"';
+                        $match = ($key === (string)$optVal);
+                        if (!$match && $isModelSelect && $optVal !== '' && (strpos($key, 'G') !== false)) {
+                            $match = (stripos($key, (string)$optVal) === 0 && preg_match('/^' . preg_quote($optVal, '/') . 'G(-GE)?$/i', $key));
+                        }
+                        if ($match) {
                             echo ' selected="selected"';
                         }
                         if (!empty($flk)) {

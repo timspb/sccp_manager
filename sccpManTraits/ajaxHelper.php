@@ -833,12 +833,13 @@ trait ajaxHelper {
                         );
                     // TODO: May be other exceptions so use switch. Historically this is the only one handled
                     if (!empty($get_settings["{$hdr_prefix}devlang"])) {
+                        $hw_type = $get_settings['sccp_hw_type'] ?? '';
                         switch ($get_settings["{$hdr_prefix}devlang"]) {
                             case 'Russian_Russian_Federation':
-                                $value = (in_array($get_settings['sccp_hw_type'], $nonJavaPhones, true)) ? 'CP1251' : 'utf-8';
+                                $value = (in_array($hw_type, $nonJavaPhones, true)) ? 'CP1251' : 'utf-8';
                                 break;
                             default:
-                                $value = (in_array($get_settings['sccp_hw_type'], $nonJavaPhones, true)) ? 'ISO8859-1' : 'utf-8';
+                                $value = (in_array($hw_type, $nonJavaPhones, true)) ? 'ISO8859-1' : 'utf-8';
                                 break;
                         }
                     }
@@ -898,9 +899,17 @@ trait ajaxHelper {
         // Save this device.
         $this->dbinterface->write('sccpdevice', $save_settings, 'replace');
         // Retrieve the phone buttons from $_REQUEST ($get_settings) and write back to
-        // update sccpdeviceconfig via Trigger
-        $save_buttons = $this->getPhoneButtons($get_settings, $name_dev, $hw_type);
-        $this->dbinterface->write('sccpbuttons', $save_buttons, $update_hw, '', $name_dev);
+        // update sccpdeviceconfig via Trigger. reftype must be 'sccpdevice'|'sccpuser'|'sipdevice', not model id.
+        $save_buttons = $this->getPhoneButtons($get_settings, $name_dev, 'sccpdevice');
+        try {
+            $this->dbinterface->write('sccpbuttons', $save_buttons, $update_hw, '', $name_dev);
+        } catch (\Throwable $e) {
+            $msg = $e->getMessage();
+            if (strpos($msg, 'line does not exist') !== false || strpos($msg, 'SCCP Lines') !== false) {
+                return array('status' => false, 'message' => $msg);
+            }
+            throw $e;
+        }
         // Create new XML for this device, and then reset or restart the device
         // so that it loads the file from TFT.
         $msg = "Device Saved";

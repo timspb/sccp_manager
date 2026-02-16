@@ -669,17 +669,26 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                 return $result;
             };
         }
-        $tftpBootXml = simplexml_load_file("{$this->sccppath['tftp_path']}/masterFilesStructure.xml");
+        $tftpBootXml = @simplexml_load_file("{$this->sccppath['tftp_path']}/masterFilesStructure.xml");
+        if ($tftpBootXml === false) {
+            $bundled = dirname(__DIR__) . '/contrib/masterFilesStructure.xml';
+            if (is_readable($bundled)) {
+                $tftpBootXml = @simplexml_load_file($bundled);
+            }
+        }
 
         foreach (array('languages', 'countries') as $pack) {
+            $result[$pack] = array('available' => array(), 'have' => array());
             switch ($pack) {
                 case 'languages':
                     if (!empty($this->sccppath['tftp_lang_path'])) {
                         $searchDir = $this->sccppath['tftp_lang_path'];
                     }
-                    $simpleXmlArr = $tftpBootXml->xpath("//Directory[@name='languages']//DirectoryPath[contains(.,'languages/')]");
-                    array_shift($simpleXmlArr); // First element is the parent directory
-                    foreach ($simpleXmlArr as $rowIn) {
+                    $simpleXmlArr = $tftpBootXml ? $tftpBootXml->xpath("//Directory[@name='languages']//DirectoryPath[contains(.,'languages/')]") : array();
+                    if (is_array($simpleXmlArr) && !empty($simpleXmlArr)) {
+                        array_shift($simpleXmlArr); // First element is the parent directory
+                    }
+                    foreach (is_array($simpleXmlArr) ? $simpleXmlArr : array() as $rowIn) {
                         $tmpArr = explode('/',(string)$rowIn);
                         array_pop($tmpArr);   //last element is empty
                         $result[$pack]['available'][] = array_pop($tmpArr);
@@ -690,9 +699,11 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                     if (!empty($this->sccppath["tftp_countries_path"])) {
                         $searchDir = $this->sccppath['tftp_countries_path'];
                     }
-                    $simpleXmlArr = $tftpBootXml->xpath("//Directory[@name='countries']//DirectoryPath[contains(.,'countries/')]");
-                    array_shift($simpleXmlArr); // First element is the parent directory
-                    foreach ($simpleXmlArr as $rowIn) {
+                    $simpleXmlArr = $tftpBootXml ? $tftpBootXml->xpath("//Directory[@name='countries']//DirectoryPath[contains(.,'countries/')]") : array();
+                    if (is_array($simpleXmlArr) && !empty($simpleXmlArr)) {
+                        array_shift($simpleXmlArr); // First element is the parent directory
+                    }
+                    foreach (is_array($simpleXmlArr) ? $simpleXmlArr : array() as $rowIn) {
                         $tmpArr = explode('/',(string)$rowIn);
                         array_pop($tmpArr);   //last element is empty
                         $result[$pack]['available'][] = array_pop($tmpArr);
@@ -701,11 +712,13 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                     break;
             }
 
-            foreach (array_diff(scandir($searchDir),array('.', '..')) as $subDir) {
-                if (is_dir($searchDir . DIRECTORY_SEPARATOR . $subDir)) {
-                    $filename = $searchDir . DIRECTORY_SEPARATOR . $subDir . DIRECTORY_SEPARATOR . $fileToFind;
-                    if (file_exists($filename)) {
-                        $result[$pack]['have'][] = $subDir;
+            if ($searchDir !== '/' && is_dir($searchDir)) {
+                foreach (array_diff(scandir($searchDir), array('.', '..')) as $subDir) {
+                    if (is_dir($searchDir . DIRECTORY_SEPARATOR . $subDir)) {
+                        $filename = $searchDir . DIRECTORY_SEPARATOR . $subDir . DIRECTORY_SEPARATOR . $fileToFind;
+                        if (file_exists($filename)) {
+                            $result[$pack]['have'][] = $subDir;
+                        }
                     }
                 }
             }

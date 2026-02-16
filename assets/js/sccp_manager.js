@@ -94,7 +94,8 @@ $(document).ready(function () {
                     newLocation = ('path' in data && data.path !== '') ? data.path : location.pathname;
                     newLocation += ('search' in data && data.search !== '') ? `${data.search}` : `${location.search}`;
                     // location.hash is set by (".change-tab") at line 198 for settings
-                    newLocation += ('hash' in data && data.hash !== '' ) ? data.hash : location.hash;
+                    var hashPart = ('hash' in data && data.hash !== '') ? data.hash : location.hash;
+                    newLocation += (hashPart && hashPart.indexOf('#') !== 0) ? '#' + hashPart : (hashPart || '');
                     if (data.message) {
                         fpbxToast(_(data.message),'', data.toastFlag);
                         // If posting warning, allow time to read
@@ -108,6 +109,10 @@ $(document).ready(function () {
                             },
                             toastDelay);
                         }
+                    } else if (data.search || data.hash) {
+                        // Save and return to list (e.g. dial plan template): redirect without waiting for toast
+                        fpbxToast(_('Data saved'), '', 'success');
+                        setTimeout(function () { location.replace(newLocation); }, 400);
                     }
                 } else {
                     bs_alert(data.message,data.status);

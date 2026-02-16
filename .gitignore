@@ -1,5 +1,7 @@
 *~
 dist/
+*.tar.gz
+*.zip
 *.code-workspace
 .idea/
 .phpunit.result.cache

@@ -71,36 +71,34 @@ if (!empty($def_val['type'])) {
         $tmpar =  explode(";", $tmp_raw['validate']);
         $loadimage_display = $tmp_raw['loadimage'] ?? $model_for_validate . ' (not set)';
         $nametemplate_display = $tmp_raw['nametemplate'] ?? $model_for_validate . ' (not set)';
+        $device_warning = array();
         if ($tmpar[0] != 'yes') {
-            $device_warning['Image'] = array('Device firmware not found : ' . $loadimage_display);
+            $device_warning[] = array('icon' => 'fa-cube', 'title' => _('Firmware'), 'msg' => _('Device firmware not found'), 'value' => $loadimage_display);
         }
         if ($tmpar[1] != 'yes') {
-            $device_warning['Template'] = array('Missing device configuration template : ' . $nametemplate_display);
+            $device_warning[] = array('icon' => 'fa-file-text-o', 'title' => _('Template'), 'msg' => _('Missing device configuration template'), 'value' => $nametemplate_display);
         }
         if (!empty($device_warning)) {
             ?>
             <div class="fpbx-container container-fluid">
                 <div class="row">
-                    <div class="container">
-                        <h2 style="border:2px solid Tomato;color:Tomato;" ><?php echo _("Warning in the SCCP Device"); ?></h2>
-                        <div class="table-responsive">
-                            <pre>
-                                <?php
-                                foreach ($device_warning as $key => $value) {
-                                    echo '<h3>' . $this->escapeHtml($key) . '</h3>';
-                                    if (is_array($value)) {
-                                        echo '<li>' . $this->escapeHtml(_(implode('</li><li>', $value))) . '</li>';
-                                    } else {
-                                        echo '<li>' . $this->escapeHtml(_($value)) . '</li>';
-                                    }
-                                }
-                                ?>
-                            </pre>
+                    <div class="col-md-12">
+                        <div class="alert alert-warning" role="alert" style="border-left: 4px solid #f0ad4e;">
+                            <h4 style="margin-top: 0;"><i class="fa fa-exclamation-triangle"></i> <?php echo _("Warning in the SCCP Device"); ?></h4>
+                            <p class="text-muted" style="margin-bottom: 1em;"><?php echo _("The following are missing or not configured. The device may not register correctly until these are resolved."); ?></p>
+                            <ul class="list-unstyled">
+                                <?php foreach ($device_warning as $w) {
+                                    $tit = $this->escapeHtml($w['title']);
+                                    $msg = $w['msg'];
+                                    $val = $this->escapeHtml($w['value']);
+                                    echo '<li class="clearfix" style="margin-bottom: 0.6em;"><i class="fa ' . $this->escapeHtml($w['icon']) . ' text-muted" style="width: 1.2em;"></i> <strong>' . $tit . ':</strong> ' . $msg . ' <code>' . $val . '</code></li>';
+                                } ?>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
-        <br>
+            <br>
 <?php   }
     }
 } ?>

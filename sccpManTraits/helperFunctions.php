@@ -342,7 +342,24 @@ trait helperFunctions {
        $dom->preserveWhiteSpace = false;
        $dom->formatOutput = true;
        $dom->loadXML($xml->asXML());
-       $dom->save($filename);
+       $dir = dirname($filename);
+       if (!is_dir($dir)) {
+           @mkdir($dir, 0755, true);
+       }
+       if ($dir && !is_writable($dir)) {
+           throw new \RuntimeException(sprintf(
+               _('Cannot write to TFTP path "%s". Run as root: fwconsole chown ; or: chown -R asterisk:asterisk %s'),
+               $dir,
+               $dir
+           ));
+       }
+       if (@$dom->save($filename) === false) {
+           throw new \RuntimeException(sprintf(
+               _('Failed to save XML to "%s". Check permissions (e.g. fwconsole chown or chown -R asterisk:asterisk %s).'),
+               $filename,
+               $dir
+           ));
+       }
     }
 
     /**
@@ -368,7 +385,7 @@ trait helperFunctions {
         $content = @file_get_contents($url, false, $this->getHttpStreamContext());
         if ($content !== false) {
             if (file_put_contents($destPath, $content) !== false) {
-                if (filesize($destPath) === 0 && preg_match('/\.(loads|sbn|bin|zup|sbin|SBN|LOADS)$/i', $destPath)) {
+                if (filesize($destPath) === 0) {
                     @unlink($destPath);
                     return false;
                 }
@@ -412,8 +429,7 @@ trait helperFunctions {
                 }
                 return false;
             }
-            // Reject 0-byte firmware/config files (redirect or LFS often yields empty file)
-            if (filesize($destPath) === 0 && preg_match('/\.(loads|sbn|bin|zup|sbin|SBN|LOADS)$/i', $destPath)) {
+            if (filesize($destPath) === 0) {
                 @unlink($destPath);
                 error_log('sccp_manager fetchUrlToFile: downloaded file is 0 bytes [URL: ' . $url . ']');
                 return false;
@@ -435,8 +451,7 @@ trait helperFunctions {
         if (file_put_contents($destPath, $content) === false) {
             return false;
         }
-        // Reject 0-byte firmware files in fallback path too
-        if (strlen($content) === 0 && preg_match('/\.(loads|sbn|bin|zup|sbin|SBN|LOADS)$/i', $destPath)) {
+        if (strlen($content) === 0) {
             @unlink($destPath);
             return false;
         }

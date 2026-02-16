@@ -17,6 +17,16 @@ global $sccp_compatible;
 global $cnf_wr;
 
 $mobile_hw = '0';
+/** Ensure value is string; avoid "Array to string conversion" when config returns array or nested array */
+function _sccp_install_scalar_str($v) {
+    if ($v === null) {
+        return '';
+    }
+    while (is_array($v)) {
+        $v = reset($v);
+    }
+    return is_scalar($v) ? (string)$v : '';
+}
 $autoincrement = (($amp_conf["AMPDBENGINE"] == "sqlite") || ($amp_conf["AMPDBENGINE"] == "sqlite3")) ? "AUTOINCREMENT" : "AUTO_INCREMENT";
 $table_req = array('sccpdevice', 'sccpline', 'sccpsettings');
 $sccp_compatible = 0;
@@ -457,7 +467,7 @@ function InstallDB_updateSchema($db_config)
             die_freepbx("Can not get information for " . $tabl_name . " table\n");
         }
 
-        // filter modifications based on field existance and prepare sql
+        // filter modifications based on field existence and prepare sql
         foreach ($db_result as $fld_id => $tabl_data) {
             if (!empty($tab_modif[$fld_id])) {
                 // have column in table so potentially something to update
@@ -625,6 +635,7 @@ function InstallDB_updateSchema($db_config)
                             "('7971', 'CISCO', 1, 2, 'SCCP70.9-4-2SR3-1S', 'loadInformation119', 0, 'SEP0000000000.cnf.xml_797x_template')",
                             "('7975', 'CISCO', 3, 8, 'SCCP75.9-4-2SR3-1S', 'loadInformation437', 0, 'SEP0000000000.cnf.xml_7975_template')",
                             "('7985', 'CISCO', 3, 8, 'cmterm_7985.4-1-7-0', 'loadInformation302', 0, NULL)",
+                            "('8821', 'CISCO', 1, 1, '', 'loadInformation658', 1, 'SEP0000000000.cnf.xml_8821_template')",
                             "('8831', 'CISCO', 1, 1, '', 'loadInformation659', 0, '')",
                             "('8841', 'CISCO', 1, 1, '', 'loadInformation683', 0, '')",
                             "('8851', 'CISCO', 1, 1, '', 'loadInformation684', 0, '')",
@@ -751,32 +762,33 @@ function InstallDB_createButtonConfigTrigger()
 {
     global $db;
     outn("<li>" . _("(Re)Create buttonconfig trigger") . "</li>");
-    $sql = "DROP TRIGGER IF EXISTS sccp_trg_buttonconfig;";
-
-    $sql .= "CREATE TRIGGER `sccp_trg_buttonconfig` BEFORE INSERT ON `sccpbuttonconfig` FOR EACH ROW BEGIN
-        IF NEW.`reftype` = 'sccpdevice' THEN
-            IF (SELECT COUNT(*) FROM `sccpdevice` WHERE `sccpdevice`.`name` = NEW.`ref` ) = 0 THEN
-                UPDATE `Foreign key contraint violated: ref does not exist in sccpdevice` SET x=1;
+    $db->query("DROP TRIGGER IF EXISTS sccp_trg_buttonconfig");
+    $sql = "CREATE TRIGGER sccp_trg_buttonconfig BEFORE INSERT ON sccpbuttonconfig FOR EACH ROW
+        BEGIN
+        IF NEW.reftype = 'sccpdevice' THEN
+            IF (SELECT COUNT(*) FROM sccpdevice WHERE sccpdevice.name = NEW.ref) = 0 THEN
+                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Foreign key constraint violated: ref does not exist in sccpdevice';
             END IF;
         END IF;
-        IF NEW.`reftype` = 'sccpline' THEN
-            IF (SELECT COUNT(*) FROM `sccpline` WHERE `sccpline`.`name` = NEW.`ref`) = 0 THEN
-                UPDATE `Foreign key contraint violated: ref does not exist in sccpline` SET x=1;
+        IF NEW.reftype = 'sccpline' THEN
+            IF (SELECT COUNT(*) FROM sccpline WHERE sccpline.name = NEW.ref) = 0 THEN
+                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Foreign key constraint violated: ref does not exist in sccpline';
             END IF;
         END IF;
-        IF NEW.`buttontype` = 'line' THEN
-            SET @line_x = SUBSTRING_INDEX(NEW.`name`,'!',1);
+        IF NEW.buttontype = 'line' THEN
+            SET @line_x = SUBSTRING_INDEX(NEW.name,'!',1);
             SET @line_x = SUBSTRING_INDEX(@line_x,'@',1);
-            IF NEW.`reftype` != 'sipdevice' THEN
-                IF (SELECT COUNT(*) FROM `sccpline` WHERE `sccpline`.`name` = @line_x ) = 0 THEN
-                    UPDATE `Foreign key contraint violated: line does not exist in sccpline` SET x=1;
+            IF NEW.reftype != 'sipdevice' THEN
+                IF (SELECT COUNT(*) FROM sccpline WHERE sccpline.name = @line_x) = 0 THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Foreign key constraint violated: line does not exist in sccpline';
                 END IF;
             END IF;
         END IF;
-        END;";
+        END";
     $check = $db->query($sql);
     if ($check === false) {
-        die_freepbx("Can not modify sccpdevice table\n");
+        $err = $db->errorInfo();
+        die_freepbx("Failed to create sccp_trg_buttonconfig trigger: " . (string)($err[2] ?? 'unknown'));
     }
     outn("<li>" . _("(Re)Create trigger Ok") . "</li>");
     return true;
@@ -886,18 +898,65 @@ function installDbPopulateSccpline() {
     $stmt = $db->prepare($sql);
     $stmt->execute();
     $sccpExts = $stmt->fetchAll(\PDO::FETCH_ASSOC|\PDO::FETCH_UNIQUE);
-    $linesToCreate = array_diff_assoc($freePbxExts, $sccpExts);
+
+    // Normalize keys and row values to scalars to avoid "Array to string conversion"
+    $normalizeRow = function ($row) {
+        if (!is_array($row)) {
+            return $row;
+        }
+        $out = array();
+        foreach ($row as $k => $v) {
+            $out[$k] = _sccp_install_scalar_str($v);
+        }
+        return $out;
+    };
+    $remap = function ($arr) use ($normalizeRow) {
+        $out = array();
+        foreach ($arr as $k => $row) {
+            $key = _sccp_install_scalar_str($k);
+            $out[$key] = is_array($row) ? $normalizeRow($row) : $row;
+        }
+        return $out;
+    };
+    $freePbxExts = $remap($freePbxExts);
+    $sccpExts = $remap($sccpExts);
+
+    // Build list of lines to create without array_diff_assoc (avoids array-to-string in PHP)
+    $linesToCreate = array();
+    foreach ($freePbxExts as $k => $freeRow) {
+        $keyStr = _sccp_install_scalar_str($k);
+        if (!isset($sccpExts[$keyStr])) {
+            $linesToCreate[$keyStr] = is_array($freeRow) ? $freeRow : array('accountcode' => '', 'label' => '');
+            continue;
+        }
+        $sccpRow = $sccpExts[$keyStr];
+        if (!is_array($freeRow) || !is_array($sccpRow)) {
+            $linesToCreate[$keyStr] = is_array($freeRow) ? $freeRow : array('accountcode' => '', 'label' => '');
+            continue;
+        }
+        $acMatch = (string)($freeRow['accountcode'] ?? '') === (string)($sccpRow['accountcode'] ?? '');
+        $lbMatch = (string)($freeRow['label'] ?? '') === (string)($sccpRow['label'] ?? '');
+        if (!$acMatch || !$lbMatch) {
+            $linesToCreate[$keyStr] = $freeRow;
+        }
+    }
 
     foreach ($linesToCreate as $key => $valArr) {
-        $name = is_array($key) ? '' : (string)$key;
-        $accountcode = is_array($valArr['accountcode'] ?? null) ? '' : (string)($valArr['accountcode'] ?? '');
-        $label = is_array($valArr['label'] ?? null) ? '' : (string)($valArr['label'] ?? '');
+        if (!is_array($valArr)) {
+            $valArr = array('accountcode' => '', 'label' => '');
+        }
+        $name = _sccp_install_scalar_str($key);
+        $accountcode = _sccp_install_scalar_str($valArr['accountcode'] ?? null);
+        $label = _sccp_install_scalar_str($valArr['label'] ?? null);
+        $name = (is_array($name) || !is_scalar($name)) ? '' : (string)$name;
+        $accountcode = (is_array($accountcode) || !is_scalar($accountcode)) ? '' : (string)$accountcode;
+        $label = (is_array($label) || !is_scalar($label)) ? '' : (string)$label;
         $description = $label . ' <' . $name . '>';
         $stmt = $db->prepare("INSERT into sccpline (name, accountcode, description, label) VALUES (:name, :accountcode, :description, :label)");
-        $stmt->bindParam(':name', $name, \PDO::PARAM_STR);
-        $stmt->bindParam(':accountcode', $accountcode, \PDO::PARAM_STR);
-        $stmt->bindParam(':description', $description, \PDO::PARAM_STR);
-        $stmt->bindParam(':label', $label, \PDO::PARAM_STR);
+        $stmt->bindValue(':name', $name, \PDO::PARAM_STR);
+        $stmt->bindValue(':accountcode', $accountcode, \PDO::PARAM_STR);
+        $stmt->bindValue(':description', $description, \PDO::PARAM_STR);
+        $stmt->bindValue(':label', $label, \PDO::PARAM_STR);
         if (!$stmt->execute()) {
             $err = $stmt->errorInfo();
             die_freepbx(sprintf(_("Error inserting into sccpline. Error was: %s "), (string)($err[2] ?? 'unknown')));
@@ -912,13 +971,12 @@ function createBackUpConfig()
     outn("<li>" . _("Creating Config BackUp") . "</li>");
     $backup_files = array('extensions','extconfig','res_mysql', 'res_config_mysql','sccp','sccp_hardware','sccp_extensions');
     $backup_ext = array('_custom.conf', '_additional.conf','.conf');
-    $dir = $cnf_int->get('ASTETCDIR');
-    $dir = is_array($dir) ? (string)reset($dir) : (string)$dir;
+    $dir = _sccp_install_scalar_str($cnf_int->get('ASTETCDIR'));
 
     $fsql = $dir . '/sccp_backup_' . date("Ymd") . '.sql';
-    $dbName = is_array($amp_conf['AMPDBNAME'] ?? null) ? (string)reset($amp_conf['AMPDBNAME']) : (string)($amp_conf['AMPDBNAME'] ?? '');
-    $dbPass = is_array($amp_conf['AMPDBPASS'] ?? null) ? (string)reset($amp_conf['AMPDBPASS']) : (string)($amp_conf['AMPDBPASS'] ?? '');
-    $dbUser = is_array($amp_conf['AMPDBUSER'] ?? null) ? (string)reset($amp_conf['AMPDBUSER']) : (string)($amp_conf['AMPDBUSER'] ?? '');
+    $dbName = _sccp_install_scalar_str($amp_conf['AMPDBNAME'] ?? null);
+    $dbPass = _sccp_install_scalar_str($amp_conf['AMPDBPASS'] ?? null);
+    $dbUser = _sccp_install_scalar_str($amp_conf['AMPDBUSER'] ?? null);
     $cmd = 'mysqldump --user=' . $dbUser . ' --password=' . $dbPass . ' ' . $dbName . ' --single-transaction >' . $fsql;
     $result = exec($cmd);
 
@@ -960,8 +1018,7 @@ function RenameConfig()
     global $cnf_int;
     $rename_files = array('sccp_hardware','sccp_extensions');
     $rename_ext = array('_custom.conf', '_additional.conf','.conf');
-    $dir = $cnf_int->get('ASTETCDIR');
-    $dir = is_array($dir) ? (string)reset($dir) : (string)$dir;
+    $dir = _sccp_install_scalar_str($cnf_int->get('ASTETCDIR'));
     foreach ($rename_files as $file) {
         foreach ($rename_ext as $b_ext) {
             if (file_exists($dir . '/'.$file . $b_ext)) {
@@ -980,8 +1037,7 @@ function Setup_RealTime()
     $cnf_read = \FreePBX::LoadConfig();
 
     // Define required default settings based on FreePBX and system settings
-    $dir = $cnf_int->get('ASTETCDIR');
-    $dir = is_array($dir) ? (string)reset($dir) : (string)$dir;
+    $dir = _sccp_install_scalar_str($cnf_int->get('ASTETCDIR'));
     $sys_mysql_socket = ini_get('pdo_mysql.default_socket');
     $def_bd_config = array(
                             'dbhost' => (string)($amp_conf['AMPDBHOST'] ?? ''),
@@ -1083,9 +1139,8 @@ function checkTftpServer() {
     global $extconfigs;
     global $thisInstaller;
     global $amp_conf;
-    $confDir = $cnf_int->get('ASTETCDIR');
-    $confDir = is_array($confDir) ? (string)reset($confDir) : (string)$confDir;
-    $ampWebroot = (string)($amp_conf['AMPWEBROOT'] ?? '');
+    $confDir = _sccp_install_scalar_str($cnf_int->get('ASTETCDIR'));
+    $ampWebroot = _sccp_install_scalar_str($amp_conf['AMPWEBROOT'] ?? '');
     $tftpRootPath = "";
     // put the rewrite rules into the required location
     if (file_exists("{$confDir}/sccpManagerRewrite.rules")) {
@@ -1330,8 +1385,7 @@ function cleanUpSccpSettings() {
     }
     // Need to load any existing sccp.conf so that retain softkeys section if exists.
     $sccp_conf_init = $thisInstaller->initialiseConfInit();
-    $astEtcDir = $cnf_int->get('ASTETCDIR');
-    $astEtcDir = is_array($astEtcDir) ? (string)reset($astEtcDir) : (string)$astEtcDir;
+    $astEtcDir = _sccp_install_scalar_str($cnf_int->get('ASTETCDIR'));
     // Now correct sccp.conf to replace any illegal settings passing $sccp_conf_init
     $thisInstaller->createDefaultSccpConfig($settingsFromDb, $astEtcDir, $sccp_conf_init);
 

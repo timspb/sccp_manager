@@ -751,7 +751,7 @@ class xmlinterface
                 if (!empty($get_settings[$hdr_prefix . 'dialtemplate_name'])) {
                     $put_file = (string) $get_settings[$hdr_prefix . 'dialtemplate_name'];
                 } else {
-                    $errors = array('Fields Dial Plan Name is requered !!');
+                    $errors = array('Fields Dial Plan Name is required !!');
                 }
             } else {
                 $put_file = (string) $get_settings['idtemplate'];
