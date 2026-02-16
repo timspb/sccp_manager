@@ -49,3 +49,22 @@ and open the template in the editor.
 .sccp-status-off .fa {
     margin-right: 4px;
 }
+
+/* Table header and borders like reference (light teal header, green borders) */
+.ext-list-sccp thead th,
+.ext-list thead th {
+    background-color: #D1E6E6 !important;
+    color: #000;
+    font-weight: bold;
+    border-color: #93B8B8 !important;
+}
+.ext-list-sccp,
+.ext-list {
+    border: 1px solid #93B8B8;
+}
+.ext-list-sccp td,
+.ext-list-sccp th,
+.ext-list td,
+.ext-list th {
+    border-color: #93B8B8 !important;
+}

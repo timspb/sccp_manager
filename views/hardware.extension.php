@@ -59,4 +59,21 @@ if (!empty($this->sccpvalues['system_rouminguser'])) {
         return  exp_dev;
         return  '<a href="config.php?display=extensions&amp;extdisplay=' + row['name'] + '"><i class="fa fa-pencil"></i></a> &nbsp;<a class="clickable delete" data-id="' + row['name'] + '"><i class="fa fa-trash"></i></a>';
     }
+    $(function() {
+        function applyExtensionRowColors() {
+            var $table = $('#table-sccp-extension');
+            if (!$table.length) return;
+            var rows = $table.bootstrapTable('getData');
+            $table.find('tbody tr').each(function(i) {
+                $(this).removeClass('sccp-row-ok sccp-row-off');
+                var row = rows[i];
+                if (!row) return;
+                var s = (row.line_status === null || row.line_status === undefined) ? '' : String(row.line_status).trim();
+                var isOk = (s.indexOf('OK') !== -1 && (s.indexOf('Yes') !== -1 || s.indexOf('yes') !== -1));
+                $(this).addClass(isOk ? 'sccp-row-ok' : 'sccp-row-off');
+            });
+        }
+        $('#table-sccp-extension').on('load-success.bs.table', applyExtensionRowColors);
+        if ($('#table-sccp-extension').find('tbody tr').length) applyExtensionRowColors();
+    });
 </script>

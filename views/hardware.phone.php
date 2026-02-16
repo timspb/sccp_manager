@@ -108,5 +108,22 @@
         var icon = '<i class="fa fa-phone ' + cls + '" aria-hidden="true"></i> ';
         return '<span class="' + cls + '">' + icon + (s !== '' ? s : '—') + '</span>';
     }
+    $(function() {
+        function applyDeviceRowColors() {
+            var $table = $('#table-sccp');
+            if (!$table.length) return;
+            var rows = $table.bootstrapTable('getData');
+            $table.find('tbody tr').each(function(i) {
+                $(this).removeClass('sccp-row-ok sccp-row-off');
+                var row = rows[i];
+                if (!row) return;
+                var s = (row.status === null || row.status === undefined) ? '' : String(row.status).trim();
+                var isOk = (s === 'OK' || s.indexOf('OK') === 0);
+                $(this).addClass(isOk ? 'sccp-row-ok' : 'sccp-row-off');
+            });
+        }
+        $('#table-sccp').on('load-success.bs.table', applyDeviceRowColors);
+        if ($('#table-sccp').find('tbody tr').length) applyDeviceRowColors();
+    });
 
 </script>
