@@ -1039,10 +1039,10 @@ function Setup_RealTime()
     $dir = _sccp_install_scalar_str($cnf_int->get('ASTETCDIR'));
     $sys_mysql_socket = ini_get('pdo_mysql.default_socket');
     $def_bd_config = array(
-                            'dbhost' => (string)($amp_conf['AMPDBHOST'] ?? ''),
-                            'dbname' => (string)($amp_conf['AMPDBNAME'] ?? ''),
-                            'dbuser' => (string)($amp_conf['AMPDBUSER'] ?? ''),
-                            'dbpass' => (string)($amp_conf['AMPDBPASS'] ?? ''),
+                            'dbhost' => _sccp_install_scalar_str($amp_conf['AMPDBHOST'] ?? null),
+                            'dbname' => _sccp_install_scalar_str($amp_conf['AMPDBNAME'] ?? null),
+                            'dbuser' => _sccp_install_scalar_str($amp_conf['AMPDBUSER'] ?? null),
+                            'dbpass' => _sccp_install_scalar_str($amp_conf['AMPDBPASS'] ?? null),
                             'dbport' => '3306',
                             'dbsock' => '/var/lib/mysql/mysql.sock',
                             'dbcharset'=>'utf8'
@@ -1052,7 +1052,7 @@ function Setup_RealTime()
             $def_bd_config['dbsock'] = $sys_mysql_socket;
         }
     }
-    $def_bd_section = is_array($amp_conf['AMPDBNAME'] ?? null) ? (string)reset($amp_conf['AMPDBNAME']) : (string)($amp_conf['AMPDBNAME'] ?? '');
+    $def_bd_section = _sccp_install_scalar_str($amp_conf['AMPDBNAME'] ?? null);
     $def_ext_config = array('sccpdevice' => "mysql,{$def_bd_section},sccpdeviceconfig",'sccpline' => "mysql,{$def_bd_section},sccplineconfig");
 
     // Check extconfig file for correct connector values
