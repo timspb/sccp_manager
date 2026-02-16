@@ -34,7 +34,7 @@
                 <table data-cookie="true" data-cookie-id-table="sccp-phone" data-url="ajax.php?module=sccp_manager&command=getPhoneGrid&type=sccp"
                             data-cache="false" data-show-refresh="true" data-toolbar="#toolbar-sccp" data-maintain-selected="true"
                             data-show-columns="true" data-show-toggle="true" data-toggle="table" data-pagination="true"
-                            data-search="true" class="table table-striped ext-list" id="table-sccp" data-id="name">
+                            data-search="true" data-row-style="sccpDeviceRowStyle" class="table table-striped ext-list" id="table-sccp" data-id="name">
                     <thead>
                         <tr>
                             <th data-checkbox="true"></th>
@@ -96,11 +96,17 @@
         }
         return result !== '' ? result : '<span class="text-muted">— ' + _('No line') + ' —</span>';
     }
+    function sccpDeviceRowStyle(row, index) {
+        var s = (row.status === null || row.status === undefined) ? '' : String(row.status).trim();
+        var isOk = (s === 'OK' || s.indexOf('OK') === 0);
+        return { classes: isOk ? 'sccp-row-ok' : 'sccp-row-off' };
+    }
     function StatusColorFormatter(value, row, index) {
         var s = (value === null || value === undefined) ? '' : String(value).trim();
         var isOk = (s === 'OK' || s.indexOf('OK') === 0);
         var cls = isOk ? 'sccp-status-ok' : 'sccp-status-off';
-        return '<span class="' + cls + '">' + (s !== '' ? s : '—') + '</span>';
+        var icon = '<i class="fa fa-phone ' + cls + '" aria-hidden="true"></i> ';
+        return '<span class="' + cls + '">' + icon + (s !== '' ? s : '—') + '</span>';
     }
 
 </script>

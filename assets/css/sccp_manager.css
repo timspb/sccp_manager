@@ -17,20 +17,35 @@ and open the template in the editor.
     padding: 1px 1px;
 }
 
-/* Status column: green = connected/OK, red = disconnected/not active */
-.sccp-status-ok {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 500;
-    background-color: #d4edda;
+/* Row coloring by status: whole row light green/red (like channels table) */
+.sccp-row-ok {
+    background-color: #d4edda !important;
+}
+.sccp-row-ok td {
     color: #155724;
 }
-.sccp-status-off {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 500;
-    background-color: #f8d7da;
+.sccp-row-off {
+    background-color: #f8d7da !important;
+}
+.sccp-row-off td {
     color: #721c24;
+}
+
+/* Status cell: icon + text, green or red */
+.sccp-status-ok,
+.sccp-status-ok.fa {
+    color: #155724 !important;
+}
+.sccp-status-off,
+.sccp-status-off.fa {
+    color: #721c24 !important;
+}
+.sccp-status-ok,
+.sccp-status-off {
+    display: inline;
+    font-weight: 500;
+}
+.sccp-status-ok .fa,
+.sccp-status-off .fa {
+    margin-right: 4px;
 }

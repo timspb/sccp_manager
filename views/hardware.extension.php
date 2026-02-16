@@ -20,7 +20,7 @@ if (!empty($this->sccpvalues['system_rouminguser'])) {
                 <div id="toolbar-sccp-extension">
                     <a class="btn btn-default" href="config.php?display=extensions&tech_hardware=sccp_custom"><i class="fa fa-plus">&nbsp;</i><?php echo _("Add Extension") ?></a>
                 </div>
-                <table data-cookie="true" data-cookie-id-table="sccp-extension-table" data-url="ajax.php?module=sccp_manager&command=getExtensionGrid&type=extGrid" data-cache="false" data-show-refresh="true" data-toolbar="#toolbar-sip" data-maintain-selected="true" data-show-columns="true" data-show-toggle="true" data-toggle="table" data-pagination="true" data-search="true" class="table table-striped ext-list-sccp" id="table-sccp-extension" data-id="name">
+                <table data-cookie="true" data-cookie-id-table="sccp-extension-table" data-url="ajax.php?module=sccp_manager&command=getExtensionGrid&type=extGrid" data-cache="false" data-show-refresh="true" data-toolbar="#toolbar-sip" data-maintain-selected="true" data-show-columns="true" data-show-toggle="true" data-toggle="table" data-pagination="true" data-search="true" data-row-style="sccpExtensionRowStyle" class="table table-striped ext-list-sccp" id="table-sccp-extension" data-id="name">
                     <thead>
                         <tr>
                             <th data-sortable="true" data-field="name"><?php echo _('Extension') ?></th>
@@ -36,11 +36,17 @@ if (!empty($this->sccpvalues['system_rouminguser'])) {
     </div>
 </div>
 <script>
+    function sccpExtensionRowStyle(row, index) {
+        var s = (row.line_status === null || row.line_status === undefined) ? '' : String(row.line_status).trim();
+        var isOk = (s.indexOf('OK') !== -1 && (s.indexOf('Yes') !== -1 || s.indexOf('yes') !== -1));
+        return { classes: isOk ? 'sccp-row-ok' : 'sccp-row-off' };
+    }
     function LineStatusColorFormatter(value, row, index) {
         var s = (value === null || value === undefined) ? '' : String(value).trim();
         var isOk = (s.indexOf('OK') !== -1 && (s.indexOf('Yes') !== -1 || s.indexOf('yes') !== -1));
         var cls = isOk ? 'sccp-status-ok' : 'sccp-status-off';
-        return '<span class="' + cls + '">' + (s !== '' ? s : '—') + '</span>';
+        var icon = '<i class="fa fa-phone ' + cls + '" aria-hidden="true"></i> ';
+        return '<span class="' + cls + '">' + icon + (s !== '' ? s : '—') + '</span>';
     }
     function DispayPhoneActionsKeyFormatter(value, row, index) {
         var exp_dev = '';
