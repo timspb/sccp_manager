@@ -904,9 +904,7 @@ msgid ""
 "Say 'yes' if you need to create cisco default language directory in tftp "
 "path."
 msgstr ""
-"Укажите yes, чтобы создать каталог языков Cisco по умолчанию в TFTP path."
-"Скажите «да», если вам нужно создать каталоги для язфковых профилей cisco в "
-"директории tftp."
+"Укажите «да», чтобы создать каталог языков Cisco по умолчанию в TFTP path."
 
 #: views/sccpgeneral.xml: <!-- Form add/ edit device -->
 #, fuzzy
