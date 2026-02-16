@@ -216,7 +216,7 @@ msgstr "Локальные сети / Маска"
 
 #: views/sccpgeneral.xml:
 msgid "Add local networks"
-msgstr "Больше LoaclNet"
+msgstr "Добавить локальную сеть"
 
 #: views/sccpgeneral.xml:
 msgid ""
@@ -264,7 +264,7 @@ msgstr "Настройки языка индикации и меню на або
 
 #: views/sccpgeneral.xml:
 msgid "SCCP Device config"
-msgstr "SCCP Настойка Абонентских Устройств"
+msgstr "SCCP настройка абонентских устройств"
 
 #: views/sccpgeneral.xml:
 msgid "First Digit Timeout"
@@ -557,7 +557,7 @@ msgstr ""
 
 #: views/sccpgeneral.xml:
 msgid "Phone Idle information URL"
-msgstr "Phone Idle information URL"
+msgstr "URL сведений о простое телефона (Phone Idle)"
 
 #: views/sccpgeneral.xml:
 msgid "URL of CiscoIPPhoneImage. Requires a non-zero setting in idleTimeout."
@@ -567,7 +567,7 @@ msgstr ""
 
 #: views/sccpgeneral.xml:
 msgid "Phone information URL"
-msgstr "Phone information URL"
+msgstr "URL сведений о телефоне"
 
 #: views/sccpgeneral.xml:
 msgid "Phone messages URL"
@@ -588,7 +588,7 @@ msgstr ""
 
 #: views/sccpgeneral.xml:
 msgid "Phone proxyServer URL"
-msgstr "Насторйка прокси для телефона"
+msgstr "Настройка proxy для телефона"
 
 #: views/sccpgeneral.xml:
 msgid "Phone Idle Timeout"
@@ -596,7 +596,7 @@ msgstr "Время бездействия"
 
 #: views/sccpgeneral.xml:
 msgid "SCCP QoS config"
-msgstr "SCCP QoS насторойка качества обслуживания"
+msgstr "SCCP QoS настройка качества обслуживания"
 
 #: views/sccpgeneral.xml:
 msgid "SCCP ToS / CoS"
@@ -617,7 +617,7 @@ msgstr "SCCP Audio ToS / CoS"
 msgid ""
 "Audio Type Of Service / Class Of Service: Audio Type or Class of Service - "
 "this is modifiable, but don't."
-msgstr "Не торж если не знаешь !."
+msgstr "Не менять без необходимости."
 
 #: views/sccpgeneral.xml:
 msgid "SCCP Video ToS / CoS"
@@ -627,7 +627,7 @@ msgstr "SCCP Video ToS / CoS"
 msgid ""
 "Video Type Of Service / Class Of Service: Video Type or Class of Service - "
 "this is modifiable, but don't."
-msgstr "Не торж если не знаешь !."
+msgstr "Не менять без необходимости."
 
 #: views/sccpgeneral.xml:
 msgid "SCCP Line config"
@@ -852,7 +852,7 @@ msgstr "Путь к  tftp"
 
 #: views/sccpgeneral.xml:
 msgid "SCCP SERVER MySQL Device Table Name"
-msgstr "MySQL Device Table"
+msgstr "Имя таблицы устройств (MySQL)"
 
 #: views/sccpgeneral.xml:
 msgid ""
@@ -874,7 +874,7 @@ msgstr ""
 
 #: views/sccpgeneral.xml:
 msgid "SCCP SERVER MySQL Line Table Name"
-msgstr "MySqL Line Table"
+msgstr "Имя таблицы линий (MySQL)"
 
 #: views/sccpgeneral.xml:
 msgid "linetable"
@@ -897,7 +897,7 @@ msgstr ""
 
 #: views/sccpgeneral.xml:
 msgid "Create tftp empty language dir"
-msgstr "Создание Языковых каталогв tftp"
+msgstr "Создание языковых каталогов tftp"
 
 #: views/sccpgeneral.xml:
 msgid ""
@@ -1696,6 +1696,19 @@ msgstr "Добавить SIP-устройство"
 
 msgid "Delete"
 msgstr "Удалить"
+
+#: conf/sccpgeneral.xml.v433 (Provision / User Roaming)
+msgid "Get data files from Provision"
+msgstr "Загружать файлы данных из Provision"
+
+msgid "User Roaming"
+msgstr "Роуминг пользователей"
+
+msgid "Experimental Function Roaming Users"
+msgstr "Экспериментальная функция: роуминг пользователей"
+
+msgid "If this is set to yes, Sccp_manager will try to get data files from dkgroot/Provision (languages, ring tones, firmware etc). This is enabled at your own risk - Sccp_Manager cannot vouch for the security or accuracy of these files, and this option is included to assist in getting up to speed as rapidly as possible."
+msgstr "При «Да» Sccp_manager будет загружать файлы данных из dkgroot/Provision (языки, рингтоны, прошивки и т.д.). Использование на свой риск — Sccp_Manager не гарантирует безопасность и корректность этих файлов; опция предназначена для быстрой первоначальной настройки."
 
 #~ msgid "Buttons "
 #~ msgstr "Кнопки "
