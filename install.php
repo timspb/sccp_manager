@@ -635,7 +635,6 @@ function InstallDB_updateSchema($db_config)
                             "('7971', 'CISCO', 1, 2, 'SCCP70.9-4-2SR3-1S', 'loadInformation119', 0, 'SEP0000000000.cnf.xml_797x_template')",
                             "('7975', 'CISCO', 3, 8, 'SCCP75.9-4-2SR3-1S', 'loadInformation437', 0, 'SEP0000000000.cnf.xml_7975_template')",
                             "('7985', 'CISCO', 3, 8, 'cmterm_7985.4-1-7-0', 'loadInformation302', 0, NULL)",
-                            "('8821', 'CISCO', 1, 1, '', 'loadInformation658', 1, 'SEP0000000000.cnf.xml_8821_template')",
                             "('8831', 'CISCO', 1, 1, '', 'loadInformation659', 0, '')",
                             "('8841', 'CISCO', 1, 1, '', 'loadInformation683', 0, '')",
                             "('8851', 'CISCO', 1, 1, '', 'loadInformation684', 0, '')",

@@ -852,9 +852,6 @@ class formcreate
                         }
                     }
                             echo  '>';
-                            if (empty($select_opt) && in_array((string)($child['type'] ?? ''), array('SDM', 'SDMS'), true)) {
-                                echo '<option value="">' . self::h(_('No models loaded. Add models in SCCP Advance Server → Models.')) . '</option>';
-                            }
                             $fld  = (string)$child->select['name'];
                             $flv  = (string)$child->select['name'];
                             $flv2 = (string)$child->select['addlabel'];
@@ -866,15 +863,10 @@ class formcreate
                         $child->value = self::safeStr($fval['data'] ?? '');
                         $key = $fval['data'];
                     }
-                    $isModelSelect = in_array((string)($child['type'] ?? ''), array('SDM', 'SDMS'), true);
                     foreach ($select_opt as $data) {
                         $optVal = $data[$fld] ?? '';
                         echo '<option value="' . self::h($optVal) . '"';
-                        $match = ($key === (string)$optVal);
-                        if (!$match && $isModelSelect && $optVal !== '' && (strpos($key, 'G') !== false)) {
-                            $match = (stripos($key, (string)$optVal) === 0 && preg_match('/^' . preg_quote($optVal, '/') . 'G(-GE)?$/i', $key));
-                        }
-                        if ($match) {
+                        if ($key === (string)$optVal) {
                             echo ' selected="selected"';
                         }
                         if (!empty($flk)) {

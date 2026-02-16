@@ -346,15 +346,7 @@ class dbinterface
         try {
             $stmt->execute();
             $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            $result = is_array($result) ? $result : array();
-            // If filtered list (ciscophones/sipphones) is empty, fall back to all models so dropdown is usable
-            if (empty($result) && in_array($get, array('ciscophones', 'sipphones'), true)) {
-                $stmt = $this->db->prepare("SELECT {$sel_inf} FROM sccpdevmodel ORDER BY model");
-                $stmt->execute();
-                $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                $result = is_array($result) ? $result : array();
-            }
-            return $result;
+            return is_array($result) ? $result : array();
         } catch (\PDOException $e) {
             error_log("Database error in getDb_model_info: " . $e->getMessage());
             return array();

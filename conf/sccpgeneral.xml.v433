@@ -1262,12 +1262,12 @@ and open the template in the editor. Base Version before all crash :-)
             <help>The MAC address of the phone. You must specify 12 characters in the format XXXX.XXXX.XXXX, XX:XX:XX:XX:XX:XX, XX-XX-XX-XX-XX-XX or XXXXXXXXXXXX</help>
         </item>
         <item type="SDM" id="2" seq="99">
-            <label>Type (phone model)</label>
+            <label>Type</label>
             <name>type</name>
             <default>7911</default>
             <select name="model" dataid="dns" dataval="buttons">model</select>
             <class>hw_select form-control</class>
-            <help>The phone model: 7911, 7940, 7960, etc. The list comes from SCCP Advance Server → Models. Important: 'G' models are treated as the base model (e.g. 7962G as 7962). When editing an existing device, this field is read-only (MAC and model are linked).</help>
+            <help>The phone model (7911, 7940, 7960, etc.)</help>
         </item>
         <item type="SDE" id="3" seq="99">
             <label>Addon</label>
@@ -1292,14 +1292,14 @@ and open the template in the editor. Base Version before all crash :-)
             <help>The MAC address of the phone</help>
         </item>
         <item type="IE" id="2" seq="99">
-            <label>Type (phone model)</label>
+            <label>Type</label>
             <input>
                 <name>type</name>
                 <default>79XX</default>
                 <class>sccp-custom</class>
                 <options readonly="readonly"></options>
             </input>
-            <help>The phone model: 7911, 7940, 7960, etc. Read-only when editing (MAC and model are linked).</help>
+            <help>The phone model</help>
         </item>
         <item type="SDE" id="3" seq="99">
             <label>Addon</label>
