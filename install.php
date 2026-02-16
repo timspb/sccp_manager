@@ -1052,7 +1052,7 @@ function Setup_RealTime()
             $def_bd_config['dbsock'] = $sys_mysql_socket;
         }
     }
-    $def_bd_section = (string)($amp_conf['AMPDBNAME'] ?? '');
+    $def_bd_section = is_array($amp_conf['AMPDBNAME'] ?? null) ? (string)reset($amp_conf['AMPDBNAME']) : (string)($amp_conf['AMPDBNAME'] ?? '');
     $def_ext_config = array('sccpdevice' => "mysql,{$def_bd_section},sccpdeviceconfig",'sccpline' => "mysql,{$def_bd_section},sccplineconfig");
 
     // Check extconfig file for correct connector values
