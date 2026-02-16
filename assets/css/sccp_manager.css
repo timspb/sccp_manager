@@ -1,72 +1,18 @@
 /*
- * SCCP Manager – common styles, form alignment, sections
- */
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/*
+    Created on : 03.05.2017, 16:13:49
+    Author     : Alex
+*/
 .sccpmultiselect {
     min-height: 100px;
     padding: 1px 1px;
+
 }
 .sccpbtn {
     min-height: 10px;
     padding: 1px 1px;
-}
-
-/* Form rows: align label, value and action columns across all settings */
-.sccp-form-label,
-.sccp-form-value,
-.sccp-form-actions {
-    min-height: 1.5em;
-}
-.sccp-form-value {
-    padding-top: 7px;
-}
-.sccp-form-actions {
-    padding-top: 5px;
-}
-.element-container .row .form-group {
-    margin-left: 0;
-    margin-right: 0;
-    align-items: flex-start;
-}
-
-/* Section titles: consistent green header and spacing */
-.sccp-section-title {
-    margin-top: 1em;
-    margin-bottom: 0.25em;
-}
-.sccp-section-title:first-child {
-    margin-top: 0;
-}
-.sccp-section-title h3 {
-    margin: 0.35em 0;
-    font-size: 1.15em;
-}
-.sccp-section {
-    margin-bottom: 0.5em;
-}
-
-/* Help sub-panel (e.g. HotLine) – align with section look */
-.sccp-help-panel {
-    margin-top: 0.75em;
-    margin-bottom: 0.75em;
-    border-color: #ddd;
-}
-.sccp-help-panel .panel-heading {
-    background-color: #f9f9f9;
-    border-color: #ddd;
-}
-.sccp-help-panel .panel-title {
-    font-size: 1em;
-    font-weight: 600;
-}
-
-/* Warning banner above forms */
-.sccp-warning-banner {
-    text-align: center;
-    margin: 0 0 1em 0;
-    padding: 0.75em 1em;
-    border: 2px solid #c9302c;
-    border-radius: 4px;
-    background: #f2dede;
-    color: #a94442;
-    font-size: 1em;
 }

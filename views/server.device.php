@@ -13,7 +13,7 @@
     <div class="fpbx-container container-fluid">
         <div class="row">
             <div class="col-xs-12" style="margin-bottom:1em;">
-                <p class="sccp-warning-banner">
+                <p style="text-align:center;margin:0;padding:0.75em 1em;border:2px solid #c9302c;border-radius:4px;background:#f2dede;color:#a94442;font-size:1em;">
                     <?php echo _("Warning: Any changes to the device configuration can cause all phones to restart. It is important to read the information in the hotline section below before using this capability."); ?>
                 </p>
             </div>

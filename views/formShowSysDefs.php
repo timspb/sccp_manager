@@ -41,10 +41,10 @@ if ($h_show==1) {
     }
     ?>
 
- <div class="section-title sccp-section-title" data-for="<?php echo $npref.$itm['name'];?>">
+ <div class="section-title" data-for="<?php echo $npref.$itm['name'];?>">
     <h3><i class="fa fa-minus"></i><?php echo _($items ->label) ?></h3>
  </div>
- <div class="section sccp-section <?php echo $sec_class;?>" data-id="<?php echo $npref.$itm['name'];?>">
+ <div class="section <?php echo $sec_class;?>" data-id="<?php echo $npref.$itm['name'];?>">
 
 <?php
 }
