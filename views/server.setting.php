@@ -17,7 +17,7 @@
     <div class="fpbx-container container-fluid">
         <div class="row">
             <div class="container">
-                <h2 style="border:2px solid Tomato;color:Tomato;" ><?php echo _("Warning : Any changes to the server configuration can cause all phones to restart"); ?></h2>
+                <h2 style="border:2px solid Tomato;color:Tomato;"><?php echo _("Warning: Any changes to the server configuration can cause all phones to restart."); ?></h2>
             </div>
         </div>
     </div>

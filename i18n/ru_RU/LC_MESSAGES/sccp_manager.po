@@ -1578,5 +1578,13 @@ msgstr "Отсутствует шаблон конфигурации устро�
 msgid "The following are missing or not configured. The device may not register correctly until these are resolved."
 msgstr "Перечисленное отсутствует или не настроено. Устройство может не зарегистрироваться, пока это не исправлено."
 
+#: views/server.setting.php
+msgid "Warning: Any changes to the server configuration can cause all phones to restart."
+msgstr "Внимание: любые изменения настроек сервера могут привести к перезагрузке всех телефонов."
+
+#: views/server.device.php
+msgid "Warning: Any changes to the device configuration can cause all phones to restart. It is important to read the information in the hotline section below before using this capability."
+msgstr "Внимание: любые изменения настроек устройств могут привести к перезагрузке всех телефонов. Перед использованием рекомендуется прочитать информацию в блоке справки ниже."
+
 #~ msgid "Buttons "
 #~ msgstr "Кнопки "
