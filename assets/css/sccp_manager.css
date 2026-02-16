@@ -18,16 +18,18 @@ and open the template in the editor.
 }
 
 /* Row coloring by status: whole row light green/red (like channels table) */
-.sccp-row-ok {
+.ext-list-sccp tbody tr.sccp-row-ok,
+.ext-list-sccp tbody tr.sccp-row-ok td,
+.ext-list tbody tr.sccp-row-ok,
+.ext-list tbody tr.sccp-row-ok td {
     background-color: #d4edda !important;
-}
-.sccp-row-ok td {
     color: #155724;
 }
-.sccp-row-off {
+.ext-list-sccp tbody tr.sccp-row-off,
+.ext-list-sccp tbody tr.sccp-row-off td,
+.ext-list tbody tr.sccp-row-off,
+.ext-list tbody tr.sccp-row-off td {
     background-color: #f8d7da !important;
-}
-.sccp-row-off td {
     color: #721c24;
 }
 

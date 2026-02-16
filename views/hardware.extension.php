@@ -68,15 +68,21 @@ if (!empty($this->sccpvalues['system_rouminguser'])) {
             var $table = $('#table-sccp-extension');
             if (!$table.length) return;
             var rows = $table.bootstrapTable('getData');
-            $table.find('tbody tr').each(function(i) {
-                $(this).removeClass('sccp-row-ok sccp-row-off');
-                var row = rows[i];
+            if (!rows || !rows.length) return;
+            $table.find('tbody tr').each(function() {
+                var $tr = $(this);
+                $tr.removeClass('sccp-row-ok sccp-row-off');
+                var idx = $tr.attr('data-index');
+                if (idx === undefined || idx === '') return;
+                var row = rows[parseInt(idx, 10)];
                 if (!row) return;
                 var connected = sccpExtensionRegStatus(row.line_status);
-                $(this).addClass(connected ? 'sccp-row-ok' : 'sccp-row-off');
+                $tr.addClass(connected ? 'sccp-row-ok' : 'sccp-row-off');
             });
         }
-        $('#table-sccp-extension').on('load-success.bs.table', applyExtensionRowColors);
-        if ($('#table-sccp-extension').find('tbody tr').length) applyExtensionRowColors();
+        var $t = $('#table-sccp-extension');
+        $t.on('load-success.bs.table', function() { setTimeout(applyExtensionRowColors, 0); });
+        $t.on('post-body.bs.table', function(e, data) { applyExtensionRowColors(); });
+        setTimeout(function() { if ($t.find('tbody tr').length) applyExtensionRowColors(); }, 500);
     });
 </script>

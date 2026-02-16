@@ -113,17 +113,23 @@
             var $table = $('#table-sccp');
             if (!$table.length) return;
             var rows = $table.bootstrapTable('getData');
-            $table.find('tbody tr').each(function(i) {
-                $(this).removeClass('sccp-row-ok sccp-row-off');
-                var row = rows[i];
+            if (!rows || !rows.length) return;
+            $table.find('tbody tr').each(function() {
+                var $tr = $(this);
+                $tr.removeClass('sccp-row-ok sccp-row-off');
+                var idx = $tr.attr('data-index');
+                if (idx === undefined || idx === '') return;
+                var row = rows[parseInt(idx, 10)];
                 if (!row) return;
                 var s = (row.status === null || row.status === undefined) ? '' : String(row.status).trim();
                 var isOk = (s === 'OK' || s.indexOf('OK') === 0);
-                $(this).addClass(isOk ? 'sccp-row-ok' : 'sccp-row-off');
+                $tr.addClass(isOk ? 'sccp-row-ok' : 'sccp-row-off');
             });
         }
-        $('#table-sccp').on('load-success.bs.table', applyDeviceRowColors);
-        if ($('#table-sccp').find('tbody tr').length) applyDeviceRowColors();
+        var $t = $('#table-sccp');
+        $t.on('load-success.bs.table', function() { setTimeout(applyDeviceRowColors, 0); });
+        $t.on('post-body.bs.table', function(e, data) { applyDeviceRowColors(); });
+        setTimeout(function() { if ($t.find('tbody tr').length) applyDeviceRowColors(); }, 500);
     });
 
 </script>
