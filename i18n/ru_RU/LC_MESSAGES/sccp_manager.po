@@ -1586,5 +1586,116 @@ msgstr "Внимание: любые изменения настроек сер�
 msgid "Warning: Any changes to the device configuration can cause all phones to restart. It is important to read the information in the hotline section below before using this capability."
 msgstr "Внимание: любые изменения настроек устройств могут привести к перезагрузке всех телефонов. Перед использованием рекомендуется прочитать информацию в блоке справки ниже."
 
+#: views/form.buttons.php
+msgid "Help"
+msgstr "Справка"
+
+msgid "Name"
+msgstr "Имя"
+
+msgid "Phone"
+msgstr "Номер"
+
+msgid "hints"
+msgstr "подсказки"
+
+msgid "Display Label"
+msgstr "Подпись на кнопке"
+
+msgid "code"
+msgstr "код"
+
+msgid "ButtonLabel,Options"
+msgstr "ПодписьКнопки,Параметры"
+
+msgid "RetrieveSingle"
+msgstr "Повторный вызов"
+
+msgid "DEF LINE"
+msgstr "ЛИНИЯ ПО УМОЛЧ."
+
+msgid "Default"
+msgstr "По умолчанию"
+
+#: views/form.buttons.php (buttons help)
+msgid "buttons come in the following flavours: <br>\n                    <ul>\n                    <li>empty: Empty button (no options)</li>\n                    <li>line: Registers the line with identifier specified as [name]</li>\n                    <li>silent:   buttons equal 'Line' with out ring</li>\n                    <li>monitor:  buttons mode speeddial + show status</li>\n                    <li>speeddial: Adds a speeddial with label [name] and [option1] as number Optionally, [option2] can be used to specify a hint by extension@context as usual.</li>\n                    <li>service (not implemented): Adds a service url Feature buttons have an on/off status represented on the device with a tick-box and can be used to set the device in a particular state. Currently Possible [option1],[option2] combinations:</li>\n                    <ul>\n                    <li>privacy,callpresent = Make a private call, number is suppressed</li><li>privacy,hint = Make a private call, hint is suppressed</li><li>cfwdall,number = Forward all calls </li><li>cfwbusy,number = Forward on busy</li><li>\n                    cfwnoaswer,number = Forward on no-answer (not implemented yet)<br> DND,busy = Do-not-disturb, return Busy signal to Caller <br> DND,silent = Do-not-disturb, return nothing to caller <br>\n                    monitor = Record Calls using AutoMon (asterisk 1.6.x only)</li><li>devstate,custom_devstate = Device State Feature Button (asterisk 1.6.1 and up). custom_devstate is the name of the custom devicestate to be toggled (How to use devicestate)\n                    hold = To be implemented</li><li>transfer = To be implemented</li><li>multiblink = To be implemented</li><li>mobility = To be implemented</li><li>conference = To be implemented</li>\n                    </ui></ui>"
+msgstr "Типы кнопок:<br><ul><li>empty: Пустая кнопка (без опций)</li><li>line: Линия с идентификатором [name]</li><li>silent: Линия без звонка</li><li>monitor: Быстрый набор + отображение статуса</li><li>speeddial: Быстрый набор: подпись [name], номер [option1]; опционально [option2] — подсказка extension@context</li><li>service (не реализовано): URL сервиса. Кнопки-флаги (вкл/выкл): privacy,callpresent — скрытый номер; cfwdall,number — переадресация всех; cfwbusy,number — переадресация при занятости; DND,busy / DND,silent — не беспокоить; monitor — запись вызовов; devstate — переключение состояния устройства. hold, transfer, multiblink, mobility, conference — в разработке.</li></ul>"
+
+#: views/server.codec.php
+msgid "Disallow"
+msgstr "Запретить"
+
+msgid "Recomended default: all"
+msgstr "Рекомендуется по умолчанию: all"
+
+msgid "Default : all. If you wish to change (Not Recommended) please enter a semicolon separated list for example: alaw;ulaw;..."
+msgstr "По умолчанию: all. Чтобы изменить (не рекомендуется), укажите список через точку с запятой, например: alaw;ulaw;..."
+
+msgid "SCCP Audio Codecs "
+msgstr "Аудио-кодеки SCCP "
+
+msgid "Allow"
+msgstr "Разрешить"
+
+msgid "SCCP Video Codecs "
+msgstr "Видео-кодеки SCCP "
+
+#: views/server.info.php
+msgid "Sccp Manager Warning"
+msgstr "Предупреждение Sccp Manager"
+
+msgid "There are Warning in the SCCP Module:"
+msgstr "В модуле SCCP есть предупреждения:"
+
+msgid "Check these problems before continuing to work."
+msgstr "Устраните эти проблемы перед продолжением работы."
+
+msgid "Diagnostic information about SCCP Manager errors"
+msgstr "Диагностика ошибок SCCP Manager"
+
+msgid "There is an error in the module:"
+msgstr "В модуле обнаружена ошибка:"
+
+msgid "Correct these problems before continuing to work."
+msgstr "Исправьте эти проблемы перед продолжением работы."
+
+msgid "Open 'SCCP Connectivity' -> Server Config' to change global settings"
+msgstr "Откройте «Сервер SCCP» → «Настройка сервера» для изменения глобальных настроек"
+
+msgid "Sccp Manager"
+msgstr "Sccp Manager"
+
+msgid "Info"
+msgstr "Информация"
+
+msgid "Module"
+msgstr "Модуль"
+
+msgid "Version"
+msgstr "Версия"
+
+msgid "BackUp Config"
+msgstr "Резервная копия настроек"
+
+#: views/server.setting.php
+msgid "Add Keyset"
+msgstr "Добавить Keyset"
+
+msgid "Device"
+msgstr "Устройство"
+
+msgid "Save"
+msgstr "Сохранить"
+
+#: views/hardware (Device SIP Phone, Add Device Phone, Delete)
+msgid "Device SIP Phone"
+msgstr "Устройство SIP-телефон"
+
+msgid "Add Device Phone"
+msgstr "Добавить SIP-устройство"
+
+msgid "Delete"
+msgstr "Удалить"
+
 #~ msgid "Buttons "
 #~ msgstr "Кнопки "
