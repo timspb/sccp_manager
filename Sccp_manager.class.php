@@ -252,8 +252,6 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
 
     public function settingsShowPage() {
         $this->checkTftpMapping();
-        $request = $_REQUEST;
-        $action = !empty($request['action'] ?? '') ? ($request['action'] ?? '') : '';
 
         $this->pagedata = array(
             "general" => array(
@@ -294,8 +292,6 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
     }
 
     public function infoServerShowPage() {
-        $request = $_REQUEST;
-        $action = !empty($request['action'] ?? '') ? ($request['action'] ?? '') : '';
         $this->pagedata = array(
             "general" => array(
                 "name" => _("General SCCP Settings"),
@@ -308,7 +304,6 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
 
     public function advServerShowPage() {
         $request = $_REQUEST;
-        $action = !empty($request['action'] ?? '') ? ($request['action'] ?? '') : '';
         $inputform = !empty($request['tech_hardware'] ?? '') ? ($request['tech_hardware'] ?? '') : '';
         switch ($inputform) {
             case 'dialplan':
@@ -345,7 +340,6 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
 
     public function phoneShowPage() {
         $request = $_REQUEST;
-        $action = !empty($request['action'] ?? '') ? ($request['action'] ?? '') : '';
         $inputform = !empty($request['tech_hardware'] ?? '') ? ($request['tech_hardware'] ?? '') : '';
         switch ($inputform) {
             case "cisco":

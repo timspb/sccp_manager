@@ -264,7 +264,6 @@ class extconfigs
                                   'settings' => 'tftproot',
                                   'locales' => 'tftproot',
                                   'languages' => 'locales',
-                                  'templates' => 'tftproot',
                                   'dialplan' => 'tftproot',
                                   'softkey' => 'tftproot',
                                   'ringtones' => 'tftproot',

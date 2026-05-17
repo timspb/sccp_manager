@@ -575,15 +575,6 @@ trait helperFunctions {
                         }
                         $conf_init['general'][$key] = explode(';', $vData);
                         break;
-                    case "devlang":
-                        /*
-                        $lang_data = $this->extconfigs->getExtConfig('sccp_lang', $vData);
-                        if (!empty($lang_data)) {
-                            // TODO:  will always get here, but lang_data['codepage'] will be empty as not a valid key
-                            $this->sccp_conf_init['general']['phonecodepage'] = $lang_data['codepage'];
-                        }
-                        break;
-                        */
                     case "netlang": // Remove Key
                     case "tftp_path":
                     case "sccp_compatible":    // This is equal to SccpDBmodel

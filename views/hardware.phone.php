@@ -69,16 +69,18 @@
     }
     function DispayDeviceActionsKeyFormatter(value, row, index) {
         var exp_model = '';
+        var hwName = String(row['name'] ?? '');
+        var hwNameAttr = hwName.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         if (row['new_hw'] == "Y") {
-            exp_model += '<a href="?display=sccp_phone&tech_hardware=cisco&new_id=' + row['name'] + '&type='+ row['type'];
+            exp_model += '<a href="?display=sccp_phone&tech_hardware=cisco&new_id=' + encodeURIComponent(hwName) + '&type=' + encodeURIComponent(String(row['type'] ?? ''));
             if (row['addon'] !== null ) {
-                exp_model += '&addon='+ row['addon'];
+                exp_model += '&addon=' + encodeURIComponent(String(row['addon']));
             }
             exp_model += '"><i class="fa fa-pencil"></i></a> &nbsp; &nbsp;\n';
 
         } else {
-            exp_model += '<a href="?display=sccp_phone&tech_hardware=cisco&id=' + row['name'] + '"><i class="fa fa-pencil"></i></a> &nbsp; &nbsp;\n';
-            exp_model += '</a> &nbsp;<a class="btn-item-delete" data-for="hardware" data-id="' + row['name'] + '"><i class="fa fa-trash"></i></a>';
+            exp_model += '<a href="?display=sccp_phone&tech_hardware=cisco&id=' + encodeURIComponent(hwName) + '"><i class="fa fa-pencil"></i></a> &nbsp; &nbsp;\n';
+            exp_model += '</a> &nbsp;<a class="btn-item-delete" data-for="hardware" data-id="' + hwNameAttr + '"><i class="fa fa-trash"></i></a>';
         }
         return  exp_model;
     }
