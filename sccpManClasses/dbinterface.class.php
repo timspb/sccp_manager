@@ -105,7 +105,7 @@ class dbinterface
 
     public function info()
     {
-        $Ver = '14.0.0.1';    // This should be updated
+        $Ver = '17.0.1.1';    // This should be updated
         return array('Version' => $Ver,
             'about' => 'Data access interface ver: ' . $Ver);
     }
@@ -534,17 +534,16 @@ class dbinterface
     }
     //******** Get SIP settings *******
     public function getSipTableData(string $dataid, $line = '') {
-        global $db;
         $line = (string) ($line ?? '');
         $tech = array();
         
         try {
             switch ($dataid) {
-                case "DeviceById":
-                    $stmt = $this->db->prepare("SELECT keyword,data FROM sip WHERE id = :id");
-                    $stmt->bindValue(':id', $line, \PDO::PARAM_STR);
-                    $stmt->execute();
-                    $tech = $stmt->fetchAll(\PDO::FETCH_COLUMN | \PDO::FETCH_GROUP);
+            case "DeviceById":
+                $stmt = $this->db->prepare("SELECT keyword,data FROM sip WHERE id = :id");
+                $stmt->bindValue(':id', $line, \PDO::PARAM_STR);
+                $stmt->execute();
+                $tech = $stmt->fetchAll(\PDO::FETCH_COLUMN | \PDO::FETCH_GROUP);
                     
                     // Ensure we have an array and cast values for PHP 8.3
                     if (is_array($tech)) {
@@ -552,23 +551,17 @@ class dbinterface
                             $value = is_array($value) && isset($value[0]) ? (string) $value[0] : '';
                         }
                     } else {
-                        $tech = array();
-                    }
+                    $tech = array();
+                }
 
-                    return $tech;
-            case "extensionList";
+                return $tech;
+            case "extensionList":
                 $stmt = $this->db->prepare("SELECT id as name, data as label  FROM sip WHERE keyword = 'callerid' order by name");
                 $stmt->execute();
                 $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                /*
-                foreach ($result as $value) {
-                    if (empty($tech[$value['id']]['id'])) {
-                        $tech[$value['id']]['id']= $value['id'];
-                    }
-                    $tech[$value['id']][$value['keyword']]=$value['data'];
-                }
-                */
                 return is_array($result) ? $result : array();
+            default:
+                return array();
         }
         } catch (\PDOException $e) {
             error_log("Database error in getSipTableData: " . $e->getMessage());

@@ -15,7 +15,7 @@ class extconfigs
     }
 
     public function info() {
-        $Ver = '13.2.0';
+        $Ver = '17.0.1.1';
         return array('Version' => $Ver,
             'about' => 'Default Settings and Enums ver: ' . $Ver);
     }
