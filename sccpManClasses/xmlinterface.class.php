@@ -228,14 +228,27 @@ class xmlinterface
                         switch (strtolower($dkey)) {
                             case 'datetimesetting':
                                 $xnode = &$xml_node->$dkey;
-                                $tz_id = $data_values['ntp_timezone'];
-                                $TZdata = $data_values['ntp_timezone_id'];
-                                if (empty($TZdata)) {
-                                    $TZdata = array('offset' => '0', 'daylight' => '', 'cisco_code' => 'Greenwich Standard Time');
-                                }
-                                $xnode->name = $tz_id;
-                                $xnode->dateTemplate = $data_values['dateformat'];
-                                $xnode->timeZone = $TZdata['cisco_code'];
+
+//				$tz_id = $data_values['ntp_timezone'];
+//                                $TZdata = $data_values['ntp_timezone_id'];
+//                                if (empty($TZdata)) {
+//                                    $TZdata = array('offset' => '0', 'daylight' => '', 'cisco_code' => 'Greenwich Standard Time');
+//                                }
+//                                $xnode->name = $tz_id;
+//                                $xnode->dateTemplate = $data_values['dateformat'];
+//                                $xnode->timeZone = $TZdata['cisco_code'];
+				$tz_id = $data_values['ntp_timezone'];
+				$TZdata = $data_values['ntp_timezone_id'];
+
+				$xnode->dateTemplate = $data_values['dateformat'];
+
+				// Override template timezone only when SCCP Manager
+				// has a valid Cisco timezone mapping.
+				if (!empty($TZdata) && !empty($TZdata['cisco_code'])) {
+				    $xnode->timeZone = $TZdata['cisco_code'];
+				}
+
+
 //                                    $xnode->timeZone = $tz_id.' Standard'.((empty($TZdata['daylight']))? '': '/'.$TZdata['daylight']).' Time';
 
                                 if ($data_values['ntp_config_enabled'] == 'on') {
@@ -530,13 +543,11 @@ class xmlinterface
                             switch ($dkey) {
                                 case 'dateTimeSetting':
                                     $xnode = &$xml_node->$dkey;
-                                    $tz_id = $data_values['ntp_timezone'];
-                                    $TZdata = $data_values['ntp_timezone_id'];
-                                    if (empty($TZdata)) {
-                                        $TZdata = array('offset' => '0', 'daylight' => '', 'cisco_code' => 'Greenwich Standard Time');
-                                    }
+                                    // Keep Cisco timezone exactly as defined in the
+                                    // SIP phone template. The SCCP Manager timezone
+                                    // mapper contains obsolete/incorrect mappings
+                                    // for legacy Cisco firmware.
                                     $xnode->dateTemplate = $data_values['dateformat'];
-                                    $xnode->timeZone = $TZdata['cisco_code'];
 
                                     if ($data_values['ntp_config_enabled'] == 'on') {
                                         $xnode->ntps->ntp->name = $data_values['ntp_server'];
@@ -570,21 +581,55 @@ class xmlinterface
                     case 'sipProfile':
                         $xml_node = $xml_work->$key;
                         foreach ($xml_work->$key->children() as $dkey => $ddata) {
-                            if (!empty($var_xml_sipProfile[$dkey])) {
-                                if (!empty($data_values[$var_xml_sipProfile[$dkey]])) {
-                                    $xml_node->$dkey = $data_values[$var_xml_sipProfile[$dkey]];
-                                } else {
-                                    $xml_node->$dkey = null;
-                                }
-                            }
+			    if (!empty($var_xml_sipProfile[$dkey])) {
+				    $sourceKey = $var_xml_sipProfile[$dkey];
+
+			    if ($dkey === 'phoneLabel') {
+				    // Description belongs to the Cisco device configuration.
+			            $value = $dev_config['description'] ?? '';
+
+			            // Fallback to the first SIP account number.
+			            if ($value === '' && !empty($data_values['siplines'][0]['account'])) {
+			            $value = $data_values['siplines'][0]['account'];
+			    }
+
+			    if ($value !== '') {
+			            $xml_node->$dkey = $value;
+			    }
+
+			    } elseif ($dkey === 'voipControlPort') {
+			    // Use the actual PJSIP bind port.
+			    if (
+			            $bind_ip_def !== '' &&
+				    isset($sip_bind[$bind_ip_def][$bind_proto])
+				) {
+				    $xml_node->$dkey = $sip_bind[$bind_ip_def][$bind_proto];
+			    } elseif (
+					array_key_exists($sourceKey, $data_values) &&
+					$data_values[$sourceKey] !== '' &&
+					$data_values[$sourceKey] !== null
+				    ) {
+					$xml_node->$dkey = $data_values[$sourceKey];
+					}
+
+			    } elseif (
+					array_key_exists($sourceKey, $data_values) &&
+				        $data_values[$sourceKey] !== '' &&
+				        $data_values[$sourceKey] !== null
+				    ) {
+					    $xml_node->$dkey = $data_values[$sourceKey];
+					}
+
+			    // If SCCP Manager has no value, preserve the template value.
+			    }
                             switch ($dkey) {
                                 case 'sipProxies':
                                     $xnode = &$xml_node->$dkey;
                                     $xnode->backupProxy = $bind_ip_def;
                                     $xnode->backupProxyPort = $sip_bind[$bind_ip_def][$bind_proto];
-                                    $xnode->emergencyProxy = $bind_proto;
+                                    $xnode->emergencyProxy = $bind_ip_def;
                                     $xnode->emergencyProxyPort = $sip_bind[$bind_ip_def][$bind_proto];
-                                    $xnode->outboundProxy = $bind_proto;
+                                    $xnode->outboundProxy = $bind_ip_def;
                                     $xnode->outboundProxyPort = $sip_bind[$bind_ip_def][$bind_proto];
                                     $xnode->registerWithProxy = "true";
 

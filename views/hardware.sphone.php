@@ -32,7 +32,7 @@
                             <th data-sortable="true" data-field="description"><?php echo _('Device  Description') ?></th>
                             <th data-sortable="true" data-formatter="DisplayTypeFormatter" data-field="type"><?php echo _('Device type') ?></th>
                             <th data-sortable="true" data-field="button" data-formatter="LineFormatter"><?php echo _('Line') ?></th>
-                            <th data-sortable="true" data-field="status"><?php echo _('Status') ?></th>
+                            <th data-sortable="true" data-field="status" data-formatter="SipStatusFormatter"><?php echo _('Status') ?></th>
                             <th data-sortable="true" data-field="address"><?php echo _('Address') ?></th>
                             <th data-field="actions" data-formatter="DispayDeviceActionsKeyFormatterS"><?php echo _('Actions') ?></th>
                         </tr>
@@ -46,6 +46,19 @@
 <script>
 
 
+
+    function SipStatusFormatter(value, row, index) {
+        var status = String(value || '').trim();
+        var connected = (status.toUpperCase() === 'OK');
+
+        var cssClass = connected ? 'text-success' : 'text-danger';
+        var label = connected ? 'OK' : 'not connected';
+
+        return '<span class="' + cssClass + '">' +
+               '<i class="fa fa-phone" aria-hidden="true"></i> ' +
+               label +
+               '</span>';
+    }
 
     function DisplayTypeFormatter(value, row, index) {
         var exp_model = value;

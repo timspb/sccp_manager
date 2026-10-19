@@ -2066,22 +2066,47 @@ and open the template in the editor. Base Version before all crash :-)
             </input>
             <help>Context where direct pickup search for extensions. if not set current context will be use.</help>
         </item>
-        <item type="SLG" id="7">
-            <label>Named Call Group</label>
-            <name>namedcallgroup</name>
-            <select>
-                <default></default>
-            </select>
-            <help>Sets the named caller groups this line is a member of</help>
-        </item>
-        <item type="SLG" id="7">
-            <label>Named Pickup Group</label>
-            <name>namedpickupgroup</name>
-            <select>
-                <default></default>
-            </select>
-            <help>Named PickupGroup - the list is of pickup groups used on the system</help>
-        </item>
+
+<item type="IE" id="7">
+    <label>Call Group</label>
+    <input>
+        <name>callgroup</name>
+        <default></default>
+        <class>sccp-custom</class>
+    </input>
+    <help>Numeric call group(s), for example: 1 or 1,2,3</help>
+</item>
+
+<item type="IE" id="7">
+    <label>Pickup Group</label>
+    <input>
+        <name>pickupgroup</name>
+        <default></default>
+        <class>sccp-custom</class>
+    </input>
+    <help>Numeric pickup group(s), for example: 1 or 1,2,3</help>
+</item>
+
+<item type="IE" id="7">
+    <label>Named Call Group</label>
+    <input>
+        <name>namedcallgroup</name>
+        <default></default>
+        <class>sccp-custom</class>
+    </input>
+    <help>Named call group(s).</help>
+</item>
+
+<item type="IE" id="7">
+    <label>Named Pickup Group</label>
+    <input>
+        <name>namedpickupgroup</name>
+        <default></default>
+        <class>sccp-custom</class>
+    </input>
+    <help>Named pickup group(s).</help>
+</item>
+
         <item type="IE" id="7">
             <label>Secondary dialtone digits</label>
             <input>

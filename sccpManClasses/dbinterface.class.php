@@ -219,7 +219,7 @@ class dbinterface
                 break;
             case 'getAssignedExtensions':
                 // all extensions that are designed as default lines
-                $stmtU = $this->db->prepare("SELECT DISTINCT name, name FROM sccpbuttonconfig WHERE buttontype = 'line' AND instance =1");
+                $stmtU = $this->db->prepare("SELECT DISTINCT name, name FROM sccpbuttonconfig WHERE buttontype = 'line' AND instance = 1 AND reftype = 'sccpdevice'");
                 break;
             case 'getDefaultLine':
                 $stmt = $this->db->prepare("SELECT name FROM sccpbuttonconfig WHERE ref = :ref and instance =1 and buttontype = 'line'");

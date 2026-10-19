@@ -555,6 +555,77 @@ class aminterface
         return $result;
     }
 
+    /**
+     * Return current PJSIP contacts indexed by AOR/extension.
+     *
+     * Example:
+     * [
+     *   '100' => [
+     *       'status'  => 'OK',
+     *       'address' => '192.0.2.10:5060'
+     *   ]
+     * ]
+     */
+    function pjsip_get_contacts()
+    {
+        $contacts = array();
+
+        if (!$this->_connect_state) {
+            return $contacts;
+        }
+
+        $_action = new \FreePBX\modules\Sccp_manager\aminterface\CommandAction('pjsip show contacts');
+        $_response = $this->send($_action);
+
+        if ($_response === false) {
+            return $contacts;
+        }
+
+        $result = $_response->getResult();
+
+        if (!isset($result['Output']) || !is_array($result['Output'])) {
+            return $contacts;
+        }
+
+        foreach ($result['Output'] as $aline) {
+            /*
+             * Example:
+             * Contact: 100/sip:100@192.0.2.10:5060;user=phone;transport=TCP ... Avail ...
+             */
+            if (!preg_match(
+                '/^\s*Contact:\s+([^\/\s]+)\/sip:[^@\s]+@([^;\s>]+)/i',
+                $aline,
+                $match
+            )) {
+                continue;
+            }
+
+            $aor = trim($match[1]);
+            $address = trim($match[2]);
+
+            /*
+             * Presence of a Contact means the endpoint is registered.
+             * If Asterisk explicitly reports it unavailable, show offline.
+             */
+            $status = 'OK';
+            if (preg_match('/\s(?:Unavail|Unavailable)\s/i', $aline)) {
+                $status = 'not connected';
+            }
+
+            /*
+             * If several contacts exist for one AOR, prefer an available one.
+             */
+            if (!isset($contacts[$aor]) || $status === 'OK') {
+                $contacts[$aor] = array(
+                    'status'  => $status,
+                    'address' => $address
+                );
+            }
+        }
+
+        return $contacts;
+    }
+
     function getRealTimeStatus()
     {
         // Initialise array with default values to eliminate testing later

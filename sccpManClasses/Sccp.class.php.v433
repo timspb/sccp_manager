@@ -121,7 +121,7 @@ class Sccp extends \FreePBX\modules\Core\Driver {
 
     public function addDevice($id, $settings) {
         // This is actually save line and is used by add and edit.
-        $add_fld = array ("name"=>'label',"outboundcid"=>'cid_num',"langcode"=>'language',"extdisplay"=>'description','devinfo_mailbox'=>'mailbox');
+        $add_fld = array ("outboundcid"=>'cid_num',"langcode"=>'language','devinfo_mailbox'=>'mailbox');
         $settings['cid_num']['value'] = '';
         $settings['cid_name']['value'] = '';
         $settings['mailbox']['value']= '';
@@ -145,6 +145,18 @@ class Sccp extends \FreePBX\modules\Core\Driver {
                 $settings[$fieldName]['value'] = $_REQUEST[$requestField];
             }
         }
+        // FreePBX 17: keep the core Display Name separate from SCCP fields.
+        // The extension number is $id; $_REQUEST['name'] is the user's Display Name.
+        $displayName = trim((string)($_REQUEST['name'] ?? ''));
+
+        if ($displayName !== '' && $displayName !== $id) {
+            // sccpline.label and cid_name use the human-readable name.
+            $settings['label']['value'] = $displayName;
+
+            // sccpline.description is mapped to the FreePBX 'callerid' setting.
+            $settings['callerid']['value'] = $displayName . ' <' . $id . '>';
+        }
+
         // Collect codecs from form: keys may be codec_* or devinfo_codec_* (gui_checkset)
         $allow_codec = array();
         foreach ($settings as $key => $val) {
@@ -228,23 +240,38 @@ class Sccp extends \FreePBX\modules\Core\Driver {
     }
 
     public function delDevice($id) {
-        //Required by FreePBX.
-        // Delete associated default line buttons or will leave orphans
-        foreach (array($id) as $openId) {
-            $sth = $this->database->prepare("DELETE FROM sccpbuttonconfig WHERE name LIKE :openID AND buttontype = 'line'");
-            $openId = "{$openId}%";
-            $sth->bindParam(':openID', $openId);
-            $sth->execute();
+        // FreePBX may call delDevice() while re-saving an extension.
+        // Preserve SCCP line/device association during an ordinary Submit.
+        $action = strtolower(trim((string)($_REQUEST['action'] ?? '')));
+
+        if (!in_array($action, array('del', 'delete'), true)) {
+            return true;
         }
 
-        $sth = $this->database->prepare("DELETE FROM sccpline WHERE name = ?");
+        // Real deletion: remove only this exact SCCP line
+        // (and its optional !silent variant).
+        $sth = $this->database->prepare(
+            "DELETE FROM sccpbuttonconfig
+             WHERE (name = :id OR name = :silent)
+               AND buttontype = 'line'"
+        );
+
+        $sth->execute(array(
+            ':id'     => $id,
+            ':silent' => $id . '!silent'
+        ));
+
+        $sth = $this->database->prepare(
+            "DELETE FROM sccpline WHERE name = ?"
+        );
         $sth->execute(array($id));
+
         return true;
-  	}
+    }
 
     public function getDevice($id) {
         // FreePBX required method
-        $sql = "SELECT name AS id, name AS name ";
+        $sql = "SELECT name AS id, label AS name ";
         foreach($this->data_fld as $key => $val) {
                         $sql .= ", {$key} AS {$val}";
         }

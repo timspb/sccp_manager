@@ -42,8 +42,7 @@ if (!empty($this->sccpvalues['system_rouminguser'])) {
         return (part && part.trim() === 'OK');
     }
     function sccpExtensionRowStyle(row, index) {
-        var connected = sccpExtensionRegStatus(row.line_status);
-        return { classes: connected ? 'sccp-row-ok' : 'sccp-row-off' };
+        return { classes: '' };
     }
     function LineStatusColorFormatter(value, row, index) {
         var s = (value === null || value === undefined) ? '' : String(value).trim();
@@ -76,8 +75,8 @@ if (!empty($this->sccpvalues['system_rouminguser'])) {
                 if (idx === undefined || idx === '') return;
                 var row = rows[parseInt(idx, 10)];
                 if (!row) return;
-                var connected = sccpExtensionRegStatus(row.line_status);
-                $tr.addClass(connected ? 'sccp-row-ok' : 'sccp-row-off');
+                // Keep row background neutral.
+                // Registration state is shown only in the Status column.
             });
         }
         var $t = $('#table-sccp-extension');

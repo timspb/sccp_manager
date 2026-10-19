@@ -1107,6 +1107,10 @@ class Sccp_manager extends \FreePBX_Helpers implements \BMO {
                     $loadimageVariants = array($loadimage);
                     if (!preg_match('/\.(loads|sbn|bin|zup|sbin)$/i', $loadimage)) {
                         $loadimageVariants[] = $loadimage . '.loads';
+                        $loadimageVariants[] = $loadimage . '.sbin';
+                        $loadimageVariants[] = $loadimage . '.bin';
+                        $loadimageVariants[] = $loadimage . '.sbn';
+                        $loadimageVariants[] = $loadimage . '.zup';
                     }
                     $firmwareFound = false;
                     switch ($search_mode) {

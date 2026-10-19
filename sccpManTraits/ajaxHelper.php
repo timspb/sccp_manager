@@ -370,9 +370,73 @@ trait ajaxHelper {
                 $req_type = $request['type'] ?? '';
                 $dbDevices = $this->dbinterface->getSccpDeviceTableData('phoneGrid', array('type' => $req_type));
 
-                // Return if only interested in SIP devices
+                // SIP Cisco phones: enrich DB rows with live PJSIP contact data.
                 if ($req_type == 'cisco-sip') {
-                    return $dbDevices;     //this may be empty
+                    $pjsipContacts = $this->aminterface->pjsip_get_contacts();
+
+                    foreach ($dbDevices as &$dev_id) {
+                        $line = '';
+
+                        // Read actual configured buttons for this Cisco SIP device.
+                        $btns = $this->dbinterface->getSccpDeviceTableData(
+                            'get_sccpdevice_buttons',
+                            array('id' => $dev_id['name'])
+                        );
+
+                        if (!empty($btns) && is_array($btns)) {
+                            $parts = array();
+
+                            foreach ($btns as $b) {
+                                $buttonType = trim((string)($b['buttontype'] ?? ''));
+                                $buttonName = trim((string)($b['name'] ?? ''));
+                                $buttonOpts = trim((string)($b['options'] ?? ''));
+
+                                // !silent is an SCCP-manager modifier, not part of extension.
+                                $buttonName = preg_replace('/!silent$/', '', $buttonName);
+
+                                $parts[] = implode(',', array(
+                                    $buttonType,
+                                    $buttonName,
+                                    $buttonOpts
+                                ));
+
+                                // First "line" button is the SIP extension/AOR.
+                                if ($line === '' && strtolower($buttonType) === 'line') {
+                                    $line = $buttonName;
+                                }
+                            }
+
+                            $dev_id['button'] = implode(';', $parts);
+                        }
+
+                        /*
+                         * Compatibility fallback:
+                         * use description only when it is purely numeric.
+                         */
+                        if (
+                            $line === '' &&
+                            preg_match('/^[0-9]+$/', trim((string)($dev_id['description'] ?? '')))
+                        ) {
+                            $line = trim((string)$dev_id['description']);
+                            $dev_id['button'] = 'line,' . $line;
+                        }
+
+                        // Default state when no active PJSIP contact exists.
+                        $dev_id['status'] = 'not connected';
+                        $dev_id['address'] = '- -';
+
+                        if ($line !== '' && isset($pjsipContacts[$line])) {
+                            $dev_id['status'] =
+                                $pjsipContacts[$line]['status'] ?? 'OK';
+
+                            $dev_id['address'] =
+                                $pjsipContacts[$line]['address'] ?? '- -';
+                        }
+
+                    }
+
+                    unset($dev_id);
+                    return $dbDevices;
                 }
 
                 // When view returns empty button (e.g. profileid=1 but user has no buttons), show device's own buttons so Line column is correct
@@ -933,7 +997,8 @@ trait ajaxHelper {
         $this->dbinterface->write('sccpdevice', $save_settings, 'replace');
         // Retrieve the phone buttons from $_REQUEST ($get_settings) and write back to
         // update sccpdeviceconfig via Trigger. reftype must be 'sccpdevice'|'sccpuser'|'sipdevice', not model id.
-        $save_buttons = $this->getPhoneButtons($get_settings, $name_dev, 'sccpdevice');
+        $button_ref_type = $get_settings['sccp_device_typeid'] ?? 'sccpdevice';
+        $save_buttons = $this->getPhoneButtons($get_settings, $name_dev, $button_ref_type);
         try {
             $this->dbinterface->write('sccpbuttons', $save_buttons, $update_hw, '', $name_dev);
         } catch (\Throwable $e) {

@@ -99,9 +99,7 @@
         return result !== '' ? result : '<span class="text-muted">— ' + _('No line') + ' —</span>';
     }
     function sccpDeviceRowStyle(row, index) {
-        var s = (row.status === null || row.status === undefined) ? '' : String(row.status).trim();
-        var isOk = (s === 'OK' || s.indexOf('OK') === 0);
-        return { classes: isOk ? 'sccp-row-ok' : 'sccp-row-off' };
+        return { classes: '' };
     }
     function StatusColorFormatter(value, row, index) {
         var s = (value === null || value === undefined) ? '' : String(value).trim();
@@ -123,9 +121,8 @@
                 if (idx === undefined || idx === '') return;
                 var row = rows[parseInt(idx, 10)];
                 if (!row) return;
-                var s = (row.status === null || row.status === undefined) ? '' : String(row.status).trim();
-                var isOk = (s === 'OK' || s.indexOf('OK') === 0);
-                $tr.addClass(isOk ? 'sccp-row-ok' : 'sccp-row-off');
+                // Keep row background neutral.
+                // Registration state is shown only in the Status column.
             });
         }
         var $t = $('#table-sccp');

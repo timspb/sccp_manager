@@ -125,7 +125,7 @@ class Command_Response extends Generic_Response
         parent::__construct($rawContent);
         $lines = explode(Message::EOL, $rawContent);
         foreach ($lines as $line) {
-            $content = explode(':', $line);
+            $content = explode(':', $line, 2);
             if (is_array($content) && count($content) >= 2) {
                 switch (strtolower($content[0] ?? '')) {
                     case 'actionid':
@@ -139,10 +139,16 @@ class Command_Response extends Generic_Response
                         break;
                     case 'output':
                         // included for backward compatibility with earlier versions of chan_sccp_b. AMI api does not precede command output with Output
-                        $this->_temptable['Output'] = explode(PHP_EOL,str_replace(PHP_EOL.'--END COMMAND--', '',trim($content[1] ?? '')));
+                        $value = trim($content[1] ?? '');
+                        if ($value !== '' && $value !== '--END COMMAND--') {
+                            $this->_temptable['Output'][] = $value;
+                        }
                         break;
                     default:
-                        $this->_temptable['Output'] = explode(PHP_EOL,str_replace(PHP_EOL.'--END COMMAND--', '', trim($line)));
+                        $value = trim($line);
+                        if ($value !== '' && $value !== '--END COMMAND--') {
+                            $this->_temptable['Output'][] = $value;
+                        }
                         break;
                 }
             }

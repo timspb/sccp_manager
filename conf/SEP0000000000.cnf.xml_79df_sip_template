@@ -49,7 +49,7 @@
       <localCfwdEnable>true</localCfwdEnable>
       <semiAttendedTransfer>true</semiAttendedTransfer>
       <anonymousCallBlock>3</anonymousCallBlock>
-      <callerIdBlocking>3</callerIdBlocking>
+      <callerIdBlocking>2</callerIdBlocking>
       <dndControl>0</dndControl>
       <remoteCcEnable>true</remoteCcEnable>
       <retainForwardInformation>false</retainForwardInformation>
